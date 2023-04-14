@@ -9,6 +9,10 @@ public class InteractionsHandler : MonoBehaviour
     public static void HandleInteraction(InteractionsEnum interaction, Vector3 start, Vector3 end, float timeUsed)
     {
         float speed = InteractionsSpeedCalculator.CalculateSpeed(interaction, start, end, timeUsed);
+        // Get the interaction sound
+        AudioClip sound = Sounds.GetInteractionSoundClip(interaction);
+        // Play the interaction sound
+        SoundManager.PlayInteractionSound(sound, speed);
         switch (interaction)
         {
             case InteractionsEnum.ScaleUp:
@@ -42,7 +46,7 @@ public class InteractionsHandler : MonoBehaviour
 
     private static void _handleScaling(InteractionsEnum interaction, Vector3 start, Vector3 end, float timeUsed, float speed)
     {
-        //SoundPlayer
+        
     }
 
     private static void _handleMovement(InteractionsEnum interaction, Vector3 start, Vector3 end, float timeUsed, float speed)

@@ -58,18 +58,18 @@ public class SoundManager : MonoBehaviour
 
     public static SoundManager Instance { get; private set; }
 
-    public List<SoundClip> SoundClips;
+    public List<AudioClip> SoundClips;
     [Range(0.0f, 1.0f)] public float volume = .0f;
     public float soundSpeed = 2.0f;
 
     private static AudioSource audioSource;
     private static AudioSource backgroundAudioSource;
-    [System.Serializable]
-    public class SoundClip
-    {
-        public string name;
-        public AudioClip clip;
-    }
+    //[System.Serializable]
+    //public class SoundClip
+    //{
+    //    public string name;
+    //    public AudioClip clip;
+    //}
 
     private void Awake()
     {
