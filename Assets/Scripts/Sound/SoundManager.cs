@@ -4,6 +4,58 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
+    #region Controlling properties and variables
+    private static float interactionSoundVolume = 1f;
+
+    internal static float InteractionSoundVolume
+    {
+        get { return interactionSoundVolume; }
+        set { 
+            interactionSoundVolume = value;
+            SetVolume(value);
+        }
+    }
+
+    private static float backgroundSoundVolume = 1f;
+
+    internal static float BackgroundSoundVolume
+    {
+        get { return backgroundSoundVolume; }
+        set
+        {
+            backgroundSoundVolume = value;
+            SetBackgroundVolume(value);
+        }
+    }
+
+    private static bool interactionSoundPlaying = true;
+
+    internal static bool InteractionSoundPlaying
+    {
+        get { return interactionSoundPlaying; }
+        set
+        {
+            interactionSoundPlaying = value;
+            // Set the volume zero if the sound is turned off, otherwise, returned it to normal volume.
+            SetVolume(!value ? 0 : interactionSoundVolume);
+        }
+    }
+
+    private static bool backgroundSoundPlaying = true;
+
+    internal static bool BackgroundSoundPlaying
+    {
+        get { return backgroundSoundPlaying; }
+        set
+        {
+            backgroundSoundPlaying = value;
+            // Set the volume zero if the sound is turned off, otherwise, returned it to normal volume.
+            SetBackgroundVolume(!value ? 0 : backgroundSoundVolume);
+        }
+    }
+
+    #endregion
+
     public static SoundManager Instance { get; private set; }
 
     public List<SoundClip> SoundClips;
@@ -11,6 +63,7 @@ public class SoundManager : MonoBehaviour
     public float soundSpeed = 2.0f;
 
     private static AudioSource audioSource;
+    private static AudioSource backgroundAudioSource;
     [System.Serializable]
     public class SoundClip
     {
@@ -37,7 +90,7 @@ public class SoundManager : MonoBehaviour
     }
 
     // Play sound with given AudioClip and sound speed
-    public static void PlaySound(AudioClip clip, float speed)
+    public static void PlayInteractionSound(AudioClip clip, float speed)
     {
         if (clip == null)
         {
@@ -56,7 +109,7 @@ public class SoundManager : MonoBehaviour
     }
 
     // Stop currently playing sound
-    public static void Stop()
+    public static void StopInteractionSound()
     {
         if (audioSource.isPlaying)
         {
@@ -65,16 +118,21 @@ public class SoundManager : MonoBehaviour
     }
 
     // Set volume of the sound
-    public void SetVolume(float volume)
+    private static void SetVolume(float volume)
     {
-        this.volume = volume;
+        //this.volume = volume;
         audioSource.volume = volume;
     }
 
-    // Set speed of the sound
-    public void SetSoundSpeed(float speed)
+    private static void SetBackgroundVolume(float volume)
     {
-        soundSpeed = speed;
+        backgroundAudioSource.volume = volume;
+    }
+
+    // Set speed of the sound
+    public static void SetSoundSpeed(float speed)
+    {
+        //soundSpeed = speed;
         audioSource.pitch = speed;
     }
 }
