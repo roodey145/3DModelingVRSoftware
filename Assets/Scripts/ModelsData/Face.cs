@@ -12,7 +12,7 @@ using UnityEngine;
 
 public class Face
 {
-    private enum VerticesPos : int
+    public enum VerticesPos : int
     {
         topLeft = 0,
         topRight = 1,
@@ -89,23 +89,82 @@ public class Face
         switch(dir)
         {
             case Direction.horizontal:
-                lines = new Vector2Int[]
-                {
-                    _lines[(int)Direction.left], _lines[(int)Direction.right]
-                };
+                //lines = new Vector2Int[]
+                //{
+                //    _lines[(int)Direction.left], _lines[(int)Direction.right]
+                //};
+
+                lines = _GetHorizontalLines();
                 break;
 
             case Direction.verctial:
-                lines = new Vector2Int[]
-                {
-                    _lines[(int)Direction.top], _lines[(int)Direction.bottom]
-                };
+                lines = _GetVerticalLines();
                 break;
 
             case Direction.all:
-                lines = (Vector2Int[])_lines.Clone();
+                Vector2Int[] horizontalLines = _GetHorizontalLines();
+                Vector2Int[] verticalLines = _GetVerticalLines();
+
+                lines = new Vector2Int[_linesCount];
+
+                lines[(int)Direction.left] = 
+                    horizontalLines[(int)Direction.left < (int)Direction.right ? 0 : 1];
+
+                lines[(int)Direction.right] =
+                    horizontalLines[(int)Direction.left < (int)Direction.right ? 1 : 0];
+
+                lines[(int)Direction.top] =
+                    verticalLines[(int)Direction.top < (int)Direction.bottom ? 0 : 1];
+
+                lines[(int)Direction.bottom] =
+                    verticalLines[(int)Direction.top < (int)Direction.bottom ? 1 : 0];
+
                 break;
         }
+
+        return lines;
+    }
+
+
+    private Vector2Int[] _GetVerticalLines()
+    {
+        Vector2Int[] lines = new Vector2Int[2];
+
+        // Get the right line
+        Vector2Int rightLine =
+            new Vector2Int(_verticesIndex[(int)VerticesPos.topLeft],
+                            _verticesIndex[(int)VerticesPos.bottomLeft]);
+
+        // Get the left line
+        Vector2Int leftLine =
+            new Vector2Int(_verticesIndex[(int)VerticesPos.topRight],
+                            _verticesIndex[(int)VerticesPos.bottomRight]);
+
+        lines[(int)Direction.left < (int)Direction.right ? 0 : 1] = leftLine;
+        lines[(int)Direction.left < (int)Direction.right ? 1 : 0] = rightLine;
+
+
+        return lines;
+    }
+
+
+    private Vector2Int[] _GetHorizontalLines()
+    {
+        Vector2Int[] lines = new Vector2Int[2];
+
+        // Get the top line
+        Vector2Int topLine =
+            new Vector2Int(_verticesIndex[(int)VerticesPos.topLeft],
+                            _verticesIndex[(int)VerticesPos.topRight]);
+
+        // Get the bottom line
+        Vector2Int bottomLine =
+            new Vector2Int(_verticesIndex[(int)VerticesPos.bottomLeft],
+                            _verticesIndex[(int)VerticesPos.bottomRight]);
+
+        lines[(int)Direction.top < (int)Direction.bottom ? 0 : 1] = topLine;
+        lines[(int)Direction.top < (int)Direction.bottom ? 1 : 0] = bottomLine;
+
 
         return lines;
     }
@@ -211,11 +270,7 @@ public class Face
         }
         else if(dir == Direction.horizontal)
         {
-            linesToCut = new Vector2Int[]
-            {
-                _lines[(int)Direction.top],
-                _lines[(int)Direction.bottom]
-            };
+            faces = _cutHorizontally(verticesIndex);
         }
         else
         {
@@ -246,7 +301,7 @@ public class Face
             verticesIndex.y, // BottomLeft
         };
 
-        faces[1].SetVerticesIndex(leftFaceVerticesIndex);
+        faces[0].SetVerticesIndex(leftFaceVerticesIndex);
 
         //// Create and Set the left line
         //Vector2Int leftFaceLeftLine = new Vector2Int();
