@@ -40,9 +40,9 @@ public class Extrude : MonoBehaviour
             {
                 //squar
                     // triangle 1
-                    newPointPostion[i] oldPointPostion[i] newPointPostion[i+1]
+                    //newPointPostion[i] oldPointPostion[i] newPointPostion[i+1]
                     // triangle 2
-                    oldPointPostion[i] oldPointPostion[i + 1] newPointPostion[i + 1]
+                    //oldPointPostion[i] oldPointPostion[i + 1] newPointPostion[i + 1]
             }
 
 
@@ -58,7 +58,7 @@ public class Extrude : MonoBehaviour
         Vector3 vectorA;
         Vector3 vectorB;
 
-        normal = Vector3.Cross(vectorA, vectorB);
+        //normal = Vector3.Cross(vectorA, vectorB);
         faceIsSelected = true;
         
     }

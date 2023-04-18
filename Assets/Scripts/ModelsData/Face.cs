@@ -27,6 +27,10 @@ public class Face
     private static byte _linesCount = 4;
     private static byte _facesCount = 4;
 
+    public string name = "";
+
+    private Direction _lastFaceCutDirection = Direction.verctial;
+
     /// <summary>
     /// An empty face that has data. The faces and lines of this face shall be assigned
     /// manually
@@ -82,6 +86,7 @@ public class Face
         _faces = neighbourFaces;
         _lines = lines;
     }
+
 
     public Vector2Int[] GetLines(Direction dir)
     {
@@ -169,15 +174,45 @@ public class Face
         return lines;
     }
 
+
+    public Direction GetLastFaceCutDirection()
+    {
+        return _lastFaceCutDirection;
+    }
+
+
+    public Direction GetCutDirection(Face previoselyCuttedFace)
+    {
+        Direction dir = Direction.horizontal;
+
+        dir = _GetCallerFaceOppositeDirection(previoselyCuttedFace, dir);
+
+        if (dir == Direction.right || dir == Direction.left)
+        { // The cut shall be horizontal
+            dir = Direction.horizontal;
+        }
+        else
+        { // The cut shall be vertical
+            dir = Direction.verctial;
+        }
+
+        _lastFaceCutDirection = dir;
+
+        return dir;
+    }
+
     /// <summary>
     /// Get a neighbour face using one of the following directions only:
     ///     top, right, bottom, left
     /// </summary>
     /// <param name="dir">The direction of the face to be fetched.</param>
     /// <returns>Return the face connected to this face in the specified direction.</returns>
-    public Face GetNeighbourFace(Direction dir)
+    public Face GetNeighbourFace(Face caller, Direction dir)
     {
         Face face;
+
+        // Convert the wanted face to the face relative to the caller
+        dir = _GetCallerFaceOppositeDirection(caller, dir);
         
         // The reason this if statement works is, the face that the expected directions
             // top, right, bottom, left has the numerical values 0, 1, 2, 3 respectively. 
@@ -194,7 +229,47 @@ public class Face
         return face;
     }
 
+    private Direction _GetCallerFaceOppositeDirection(Face face, Direction dir)
+    {
+        // Initialize the top direction relative to this face
+        //Direction dir = Direction.top;
 
+        if(face != this)
+        { // The top direction shall be relative to the caller face
+            // Get the placement of the face inside the faces array
+            for (int i = 0; i < _faces.Length; i++)
+            {
+                if (_faces[i] == face)
+                {
+                    dir = _GetTheOppositeDirection((Direction)i);
+                    break;
+                }
+            }
+        }
+
+        return dir;
+    }
+
+    private Direction _GetTheOppositeDirection(Direction dir)
+    {
+        switch(dir)
+        {
+            case Direction.left:
+                dir = Direction.right;
+                break;
+            case Direction.right:
+                dir = Direction.left;
+                break;
+            case Direction.bottom:
+                dir = Direction.top;
+                break;
+            case Direction.top:
+                dir = Direction.bottom;
+                break;
+        }
+
+        return dir;
+    }
 
     public void SetVerticesIndex(int[] verticesIndex)
     {
@@ -362,7 +437,7 @@ public class Face
             verticesIndex.x, // BottomLeft
         };
 
-        faces[1].SetVerticesIndex(leftFaceVerticesIndex);
+        faces[0].SetVerticesIndex(leftFaceVerticesIndex);
 
 
 
