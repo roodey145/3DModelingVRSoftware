@@ -12,7 +12,11 @@ public class Cube : MonoBehaviour
     [Range(1e-15f, 0.9999999999999f)]
     public float cutPos = 0.5f;
 
+    private float _lastCutPos = 0.5f;
+
+
     public bool cutHorizontally = true;
+    private bool _lastCutHorizontally = true;
 
     // Start is called before the first frame update
     void Start()
@@ -35,7 +39,7 @@ public class Cube : MonoBehaviour
     };
     private void OnDrawGizmos()
     {
-        if(!_initialized)
+        if(!_initialized || Mathf.Abs(_lastCutPos - cutPos) > 1e-10 || _lastCutHorizontally != cutHorizontally)
         {
             _Initialize();
 
@@ -75,6 +79,8 @@ public class Cube : MonoBehaviour
             Face faceToCut = faces[0];
             LoopCut(faceToCut, faceToCut, faceToCut, cutPos, cutHorizontally ? Direction.horizontal : Direction.verctial);
 
+            _lastCutPos = cutPos;
+            _lastCutHorizontally = cutHorizontally;
             //faces[0].Split()
 
             print(1);
