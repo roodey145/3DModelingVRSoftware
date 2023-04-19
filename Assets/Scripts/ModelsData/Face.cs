@@ -279,6 +279,21 @@ public class Face
         }
     }
 
+    public void UpdateVerticesIndex(Vector2Int oldVerticesIndex, Vector2Int newVerticesIndex)
+    {
+        for(int i = 0; i < _verticesIndex.Length; i++)
+        {
+            if(oldVerticesIndex.x == _verticesIndex[i])
+            {
+                _verticesIndex[i] = newVerticesIndex.x;
+            }
+            else if(oldVerticesIndex.y == _verticesIndex[i])
+            {
+                _verticesIndex[i] = newVerticesIndex.y;
+            }
+        }
+    }
+
     /// <summary>
     /// Assign a line to this face.
     /// </summary>
@@ -360,23 +375,29 @@ public class Face
     }
 
 
-    private Face[] _cutVerticlly(Vector2Int verticesIndex)
+    private Face[] _cutVerticlly(Vector2Int verticesIndex, bool demo = true)
     {
         Face[] faces = new Face[2];
 
         //-------------------------------------------
         // Create the Left face
-        faces[0] = new Face();
+        faces[(int)Direction.left < (int)Direction.right? 0 : 1] = new Face();
 
-        int[] leftFaceVerticesIndex = new int[]
-        {
-            verticesIndex.x, // TopLeft
-            _verticesIndex[(int)VerticesPos.topRight], // TopRight
-            _verticesIndex[(int)VerticesPos.bottomRight], // BottomRight
-            verticesIndex.y, // BottomLeft
-        };
+        int[] leftFaceVerticesIndex = new int[4];
+        //{
+        //    verticesIndex.x, // TopLeft
+        //    _verticesIndex[(int)VerticesPos.topRight], // TopRight
+        //    _verticesIndex[(int)VerticesPos.bottomRight], // BottomRight
+        //    verticesIndex.y, // BottomLeft
+        //};
 
-        faces[0].SetVerticesIndex(leftFaceVerticesIndex);
+        leftFaceVerticesIndex[(int)VerticesPos.topLeft] = _verticesIndex[(int)VerticesPos.topLeft];
+        leftFaceVerticesIndex[(int)VerticesPos.topRight] = verticesIndex.x;
+        leftFaceVerticesIndex[(int)VerticesPos.bottomRight] = verticesIndex.y;
+        leftFaceVerticesIndex[(int)VerticesPos.bottomLeft] = _verticesIndex[(int)VerticesPos.bottomLeft];
+
+        faces[(int)Direction.left < (int)Direction.right ? 0 : 1].SetVerticesIndex(leftFaceVerticesIndex);
+
 
         //// Create and Set the left line
         //Vector2Int leftFaceLeftLine = new Vector2Int();
@@ -406,7 +427,7 @@ public class Face
 
         //-------------------------------------------
         // Create the right face
-        faces[1] = new Face(); // TODO: I have switched position between this face and the other one. This is supposed to be right face, but it is the left face....
+        faces[(int)Direction.left < (int)Direction.right ? 1 : 0] = new Face(); // TODO: I have switched position between this face and the other one. This is supposed to be right face, but it is the left face....
         int[] rightFaceVerticesIndex = new int[]
         {
             _verticesIndex[(int)VerticesPos.topLeft], // TopLeft
@@ -415,7 +436,52 @@ public class Face
             _verticesIndex[(int)VerticesPos.bottomLeft] // BottomLeft
         };
 
-        faces[1].SetVerticesIndex(rightFaceVerticesIndex);
+        rightFaceVerticesIndex[(int)VerticesPos.topLeft] = verticesIndex.x;
+        rightFaceVerticesIndex[(int)VerticesPos.topRight] = _verticesIndex[(int)VerticesPos.topRight];
+        rightFaceVerticesIndex[(int)VerticesPos.bottomRight] = _verticesIndex[(int)VerticesPos.bottomRight];
+        rightFaceVerticesIndex[(int)VerticesPos.bottomLeft] = verticesIndex.y;
+
+        faces[(int)Direction.left < (int)Direction.right ? 1 : 0].SetVerticesIndex(rightFaceVerticesIndex);
+
+
+        if(!demo)
+        {
+            //-------------------------------------------
+            // Assign the neighbour faces
+
+            // The left face
+            faces[(int)Direction.left < (int)Direction.right ? 0 : 1].SetFace(
+                _faces[(int)Direction.top], Direction.top
+                );
+            faces[(int)Direction.left < (int)Direction.right ? 0 : 1].SetFace(
+               _faces[(int)Direction.bottom], Direction.bottom
+               );
+
+            faces[(int)Direction.left < (int)Direction.right ? 0 : 1].SetFace(
+                faces[(int)Direction.left < (int)Direction.right ? 1 : 0], Direction.right
+                );
+            faces[(int)Direction.left < (int)Direction.right ? 0 : 1].SetFace(
+               _faces[(int)Direction.left], Direction.left
+               );
+
+
+            // The right face
+            faces[(int)Direction.left < (int)Direction.right ? 1 : 0].SetFace(
+                _faces[(int)Direction.top], Direction.top
+                );
+            faces[(int)Direction.left < (int)Direction.right ? 1 : 0].SetFace(
+               _faces[(int)Direction.bottom], Direction.bottom
+               );
+
+            faces[(int)Direction.left < (int)Direction.right ? 1 : 0].SetFace(
+               _faces[(int)Direction.right], Direction.right
+               );
+            faces[(int)Direction.left < (int)Direction.right ? 1 : 0].SetFace(
+                faces[(int)Direction.left < (int)Direction.right ? 0 : 1], Direction.left
+                );
+        }
+
+
 
         return faces;
     }
