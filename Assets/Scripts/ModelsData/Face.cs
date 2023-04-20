@@ -229,6 +229,25 @@ public class Face
         return face;
     }
 
+    public Direction GetNeighbourDirection(Face neighbourFace)
+    {
+        Direction dir = Direction.all;
+        if(neighbourFace != null)
+        {
+            // Get the placement of the face inside the faces array
+            for (int i = 0; i < _faces.Length; i++)
+            {
+                if (_faces[i] == neighbourFace)
+                {
+                    dir = (Direction)i;
+                    break;
+                }
+            }
+        }
+
+        return dir;
+    }
+
     private Direction _GetCallerFaceOppositeDirection(Face face, Direction dir)
     {
         // Initialize the top direction relative to this face
