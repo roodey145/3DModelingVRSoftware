@@ -350,9 +350,7 @@ public class Face
     /// <returns>Two faces that are connected to the rest of the model.</returns>
     public Face[] Split(Vector2Int verticesIndex, float splitPlacement, Direction dir)
     {
-        Face[] faces = null;
-
-        Vector2Int[] linesToCut = null;
+        Face[] faces;
 
         if(dir == Direction.verctial)
         {

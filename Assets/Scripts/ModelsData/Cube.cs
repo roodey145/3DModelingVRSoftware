@@ -61,8 +61,13 @@ public class Cube : MonoBehaviour
         if(!_initialized || Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
             || _lastCutHorizontally != cutHorizontally || faceIndex != _lastCuttedFaceIndex)
         {
-            newFaces = new List<Face>();
-            _Initialize();
+            if(!_initialized)
+            {
+                newFaces = new List<Face>();
+                _Initialize();
+                _initialized = true;
+            }
+
 
 
             Face faceToCut = faces[faceIndex];
@@ -74,9 +79,6 @@ public class Cube : MonoBehaviour
             _lastCutHorizontally = cutHorizontally;
             _lastCuttedFaceIndex = faceIndex;
             //faces[0].Split()
-
-            
-            _initialized = true;
         }
 
         if(applyChange && demo != null)
@@ -114,6 +116,7 @@ public class Cube : MonoBehaviour
             }
         }
 
+        if (faces.Count == 0) return;
         faceVertices = faces[faceIndex].GetLines(Direction.all);
         Gizmos.color = fillColor;
         for (int l = 0; l < faceVertices.Length; l++)
@@ -205,11 +208,15 @@ public class Cube : MonoBehaviour
                 vertices[horizontalLines[bottomLineIndex].y],
                 cutPositionInPercent);
 
+        // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
         // Add the points to the vertices
         demo.vertices.Add(leftCut);
-        int leftVertixIndex = demo.vertices.Count - 1;
+        int leftVertixIndex = demo.vertices.Count - 1 + vertices.Count;
         demo.vertices.Add(rightCut);
-        int rightVertixIndex = demo.vertices.Count - 1;
+        int rightVertixIndex = demo.vertices.Count - 1 + vertices.Count;
+
+        
+
 
         Vector2Int cutThrough = new Vector2Int();
         cutThrough.x = (int)Direction.left < (int)Direction.right ? leftVertixIndex : rightVertixIndex;
@@ -244,11 +251,12 @@ public class Cube : MonoBehaviour
                 vertices[verticalLines[bottomLineIndex].y],
                 cutPositionInPercent);
 
+        // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
         // Add the points to the vertices
         demo.vertices.Add(topCut);
-        int topVertixIndex = demo.vertices.Count - 1;
+        int topVertixIndex = demo.vertices.Count - 1 + vertices.Count;
         demo.vertices.Add(bottomCut);
-        int bottomVertixIndex = demo.vertices.Count - 1;
+        int bottomVertixIndex = demo.vertices.Count - 1 + vertices.Count;
 
         Vector2Int cutThrough = new Vector2Int();
         cutThrough.x = (int)Direction.top < (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
