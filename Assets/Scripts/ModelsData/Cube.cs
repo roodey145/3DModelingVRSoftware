@@ -13,8 +13,9 @@ public class Cube : MonoBehaviour
     [Range(1e-15f, 0.9999999999999f)]
     public float cutPos = 0.5f;
 
-    [Range(0, 5)]
+    //[Range(0, 5)]
     public int faceIndex = 0;
+    public int numberOfFaces = 0;
 
     private int _lastCuttedFaceIndex = 0;
 
@@ -84,6 +85,9 @@ public class Cube : MonoBehaviour
         if(applyChange && demo != null)
         {
             demo.ApplyChange(vertices, faces);
+
+            numberOfFaces = faces.Count;
+
             for(int i = 0; i < demo.faces.Count; i++)
             {
                 for(int l = 0; l < demo.faces[i].subFaces.Length; l++)
@@ -118,7 +122,7 @@ public class Cube : MonoBehaviour
 
         if (faces.Count == 0) return;
         faceVertices = faces[faceIndex].GetLines(Direction.all);
-        Gizmos.color = fillColor;
+        Gizmos.color = Color.cyan;
         for (int l = 0; l < faceVertices.Length; l++)
         {
 

@@ -349,6 +349,19 @@ public class Face
         }
     }
 
+
+    public void ReplaceNeighbourFace(Face oldFace, Face newFace)
+    {
+        for(int i = 0; i < _faces.Length; i++)
+        {
+            if (_faces[i] == oldFace)
+            {
+                _faces[i] = newFace;
+                break;
+            }
+        }
+    }
+
     /// <summary>
     /// Takes the indeces of two points and uses them to split this face in two.
     /// It is expected that the index of the first vertix shall match the right/top edge

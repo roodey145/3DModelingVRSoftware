@@ -79,13 +79,14 @@ public class LoopCutDemoInfo
             originalFaces.Remove(faces[i].original);
         }
 
-        int nextFaceIndex = -1;
-        int previousFaceIndex = -1;
+        int nextFaceIndex;
+        int previousFaceIndex;
         int leftFaceIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
         int rightFaceIndex = leftFaceIndex == 0 ? 1 : 0;
         int topFaceIndex = (int)Direction.top < (int)Direction.bottom ? 0 : 1;
         int bottomFaceIndex = topFaceIndex == 0 ? 1 : 0;
 
+        Face[] neighbours = new Face[4];
 
         for (int i = 0; i < vertices.Count / 2; i++)
         {
@@ -110,13 +111,20 @@ public class LoopCutDemoInfo
             if (direction[i] == Direction.verctial)
             { // This face was cut verticlly thus right and left faces are preserved
 
+                neighbours[(int)Direction.left] = faces[i].original.GetNeighbourFace(faces[i].original, Direction.left);
+                neighbours[(int)Direction.right] = faces[i].original.GetNeighbourFace(faces[i].original, Direction.right);
+
                 // Assign the preserved faces - 1 face assigned
                 faces[i].subFaces[leftFaceIndex].SetFace(
-                    faces[i].original.GetNeighbourFace(faces[i].original, Direction.left),
+                    neighbours[(int)Direction.left],
                     Direction.left);
                 faces[i].subFaces[rightFaceIndex].SetFace(
-                    faces[i].original.GetNeighbourFace(faces[i].original, Direction.right),
+                    neighbours[(int)Direction.right],
                     Direction.right);
+
+                // Assign the subfaces to the neighbour faces
+                neighbours[(int)Direction.left].ReplaceNeighbourFace(faces[i].original, faces[i].subFaces[leftFaceIndex]);
+                neighbours[(int)Direction.right].ReplaceNeighbourFace(faces[i].original, faces[i].subFaces[rightFaceIndex]);
 
                 // Assign the faces to them selve - 2 faces assigned
                 faces[i].subFaces[leftFaceIndex].SetFace(
@@ -145,6 +153,9 @@ public class LoopCutDemoInfo
             }
             else if (direction[i] == Direction.horizontal)
             {
+                neighbours[(int)Direction.top] = faces[i].original.GetNeighbourFace(faces[i].original, Direction.top);
+                neighbours[(int)Direction.bottom] = faces[i].original.GetNeighbourFace(faces[i].original, Direction.bottom);
+
                 // Assign the preserved faces - 1 face assigned
                 faces[i].subFaces[topFaceIndex].SetFace(
                     faces[i].original.GetNeighbourFace(faces[i].original, Direction.top),
@@ -152,6 +163,11 @@ public class LoopCutDemoInfo
                 faces[i].subFaces[bottomFaceIndex].SetFace(
                     faces[i].original.GetNeighbourFace(faces[i].original, Direction.bottom),
                     Direction.bottom);
+
+
+                // Assign the subfaces to the neighbour faces
+                neighbours[(int)Direction.top].ReplaceNeighbourFace(faces[i].original, faces[i].subFaces[topFaceIndex]);
+                neighbours[(int)Direction.bottom].ReplaceNeighbourFace(faces[i].original, faces[i].subFaces[bottomFaceIndex]);
 
                 // Assign the faces to them selve - 2 faces assigned
                 faces[i].subFaces[topFaceIndex].SetFace(
