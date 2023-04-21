@@ -31,6 +31,9 @@ public class Cube : MonoBehaviour
     public bool cutHorizontally = true;
     private bool _lastCutHorizontally = true;
 
+    public bool extrude = false;
+    public float extrudeAmount = 0f;
+    private ExtrudeDemoInfo extrudeDemo = null;
 
     public bool applyChange = false;
 
@@ -69,6 +72,10 @@ public class Cube : MonoBehaviour
                 _initialized = true;
             }
 
+            if(faceIndex >= faces.Count)
+            {
+                faceIndex = faces.Count - 1;
+            }
 
 
             Face faceToCut = faces[faceIndex];
@@ -82,7 +89,22 @@ public class Cube : MonoBehaviour
             //faces[0].Split()
         }
 
-        if(applyChange && demo != null)
+        if (extrude && faces.Count >= faceIndex && faceIndex >= 0)
+        { // The user want to extrude a face
+            if (extrudeDemo == null)
+            {
+                extrudeDemo = new ExtrudeDemoInfo(faces[faceIndex]);
+            }
+            else if(extrudeDemo.face != faces[faceIndex])
+            {
+                extrudeDemo.face = faces[faceIndex];
+            }
+
+            extrudeDemo.SetExtrudeAmount(extrudeAmount);
+            extrudeDemo.draw(vertices);
+        }
+
+        if (applyChange && demo != null)
         {
             demo.ApplyChange(vertices, faces);
 
@@ -137,6 +159,11 @@ public class Cube : MonoBehaviour
             {
                 Gizmos.DrawLine(vertices[faceVertices[l].x], vertices[faceVertices[l].y]);
             }
+        }
+
+        if (extrude)
+        { // The user want to extrude a face
+            extrudeDemo.draw(vertices);
         }
 
         // Check if the demo shall be drown

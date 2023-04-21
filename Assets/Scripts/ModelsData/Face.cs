@@ -88,6 +88,11 @@ public class Face
     }
 
 
+    public int GetVertixIndex(VerticesPos vertixPosition)
+    {
+        return _verticesIndex[(int)vertixPosition];
+    }
+
     public Vector2Int[] GetLines(Direction dir)
     {
         Vector2Int[] lines = null;

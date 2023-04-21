@@ -237,11 +237,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initialized: 1
-  cutPos: 0.859
-  faceIndex: 1
+  cutPos: 0.217
+  faceIndex: 33
+  numberOfFaces: 80
   cutHorizontally: 1
   applyChange: 0
-  faceToFillIndex: 15
+  faceToFillIndex: 47
   fillColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!4 &200928521
 Transform:
