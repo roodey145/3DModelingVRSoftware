@@ -10,6 +10,8 @@ public class Cube : MonoBehaviour
     [SerializeField]
     private bool _initialized = false;
 
+    public Color strokeColor = Color.gray;
+
     [Range(1e-15f, 0.9999999999999f)]
     public float cutPos = 0.5f;
 
@@ -89,7 +91,7 @@ public class Cube : MonoBehaviour
             //faces[0].Split()
         }
 
-        if (extrude && faces.Count >= faceIndex && faceIndex >= 0)
+        if (extrude && faces.Count > faceIndex && faceIndex >= 0)
         { // The user want to extrude a face
             if (extrudeDemo == null)
             {
@@ -104,11 +106,24 @@ public class Cube : MonoBehaviour
             extrudeDemo.draw(vertices);
         }
 
-        if (applyChange && demo != null)
+        if(applyChange && extrude && extrudeDemo != null)
+        {
+            extrudeDemo.ApplyChange(vertices, faces);
+            newFaces.Clear();
+
+            for(int i = 0; i < extrudeDemo.faces.Length; i++)
+            {
+                newFaces.Add(extrudeDemo.faces[i]);
+            }
+            extrudeDemo = null;
+            applyChange = false;
+        }
+        else if (applyChange && demo != null)
         {
             demo.ApplyChange(vertices, faces);
 
             numberOfFaces = faces.Count;
+            newFaces.Clear();
 
             for(int i = 0; i < demo.faces.Count; i++)
             {
@@ -130,11 +145,13 @@ public class Cube : MonoBehaviour
     public void draw()
     {
         Vector2Int[] faceVertices;
+
         // Draw the faces
+        Gizmos.color = strokeColor;
         for(int i = 0; i < faces.Count; i++)
         {
             faceVertices = faces[i].GetLines(Direction.all);
-            Gizmos.color = colors[i % colors.Length];
+            //Gizmos.color = colors[i % colors.Length];
             for (int l = 0; l < faceVertices.Length; l++)
             {
                 
@@ -161,7 +178,7 @@ public class Cube : MonoBehaviour
             }
         }
 
-        if (extrude)
+        if (extrude && extrudeDemo != null)
         { // The user want to extrude a face
             extrudeDemo.draw(vertices);
         }
