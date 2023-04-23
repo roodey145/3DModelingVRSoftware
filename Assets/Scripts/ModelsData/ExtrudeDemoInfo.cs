@@ -44,7 +44,7 @@ public class ExtrudeDemoInfo
             vertices[face.GetVertixIndex(Face.VerticesPos.bottomLeft)] + normal * extrudeAmount;
     }
 
-    public void draw(List<Vector3> vertices)
+    public void Draw(List<Vector3> vertices)
     {
         _CalcVerticesPosition(vertices);
         // Draw the new faces

@@ -1,0 +1,115 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BevelDemoInfo
+{
+    Color color = new Color(1f, 0.1f, 1f);
+    public Vector3[] vertices = new Vector3[6]; // The lst two are for the middle points
+    public float bevelAmount = 0f; // A value between 0 and 1
+    public Face selectedFace;
+    public Direction edgeDirection = Direction.top;
+
+    private LoopCutDemoInfo loopCutDemo;
+
+    public BevelDemoInfo(Face selectedFace, Direction edgeDirection)
+    {
+        this.selectedFace = selectedFace;
+        this.edgeDirection = edgeDirection;
+
+        loopCutDemo= new LoopCutDemoInfo();
+    }
+
+
+    public void SetBevelAmount(float amount)
+    {
+        this.bevelAmount = amount;
+    }
+
+
+    private void _CalcVerticesPosition(List<Vector3> originalVertices)
+    {
+        // Get the neighbour face direction
+        Face neighbour = selectedFace.GetNeighbourFace(selectedFace, edgeDirection);
+        // Get the information of the face in the opposite direction
+        Direction myDirectionRelativeToNeighbour = 
+            neighbour.GetNeighbourDirection(selectedFace);
+
+        // Get the required edges info
+        Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
+        // Get the top line
+        Vector2Int topEdge = neighbour.GetOppositeLine(myDirectionRelativeToNeighbour);
+        // Get the bottom line
+        Vector2Int bottomEdge = selectedFace.GetOppositeLine(edgeDirection);
+
+        int leftIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
+        int rightIndex = leftIndex == 0 ? 1 : 0;
+
+        //bool isLeft
+        // Calculate the the placement of the first point
+        vertices[(int)Face.VerticesPos.topLeft] =
+            Vector3.Lerp(
+                originalVertices[middleEdge[leftIndex]],
+                originalVertices[topEdge[leftIndex]],
+                bevelAmount);
+
+        // Calculate the the placement of the second point
+        vertices[(int)Face.VerticesPos.topRight] =
+            Vector3.Lerp(
+                originalVertices[middleEdge[rightIndex]],
+                originalVertices[topEdge[rightIndex]],
+                bevelAmount);
+
+
+        // Calculate the the placement of the third point
+        vertices[(int)Face.VerticesPos.bottomLeft] =
+            Vector3.Lerp(
+                originalVertices[middleEdge[leftIndex]],
+                originalVertices[bottomEdge[leftIndex]],
+                bevelAmount);
+
+
+        // Calculate the the placement of the fourth point
+        vertices[(int)Face.VerticesPos.bottomRight] =
+            Vector3.Lerp(
+                originalVertices[middleEdge[rightIndex]],
+                originalVertices[bottomEdge[rightIndex]],
+                bevelAmount);
+
+        // Calculate the placement of the fifth point
+        vertices[4 + leftIndex] =
+            Vector3.Lerp(
+                vertices[(int)Face.VerticesPos.topLeft],
+                vertices[(int)Face.VerticesPos.bottomLeft],
+                0.5f);
+
+        // Calculate the placement of the sixth point
+        vertices[4 + rightIndex] =
+            Vector3.Lerp(
+                vertices[(int)Face.VerticesPos.topRight],
+                vertices[(int)Face.VerticesPos.bottomRight],
+                0.5f);
+    }
+
+
+    public void Draw(List<Vector3> originalVertices)
+    {
+        _CalcVerticesPosition(originalVertices);
+
+        Gizmos.color = color;
+        // Draw the top line
+        Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topLeft], vertices[(int)Face.VerticesPos.topRight]);
+
+        // Draw the ceneter line
+        Gizmos.DrawLine(vertices[4], vertices[5]);
+
+        // Draw the bottom line
+        Gizmos.DrawLine(vertices[(int)Face.VerticesPos.bottomLeft], vertices[(int)Face.VerticesPos.bottomRight]);
+
+        // Draw the left Line
+        Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topLeft], vertices[(int)Face.VerticesPos.bottomLeft]);
+
+        // Draw the right Line
+        Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topRight], vertices[(int)Face.VerticesPos.bottomRight]);
+    }
+}

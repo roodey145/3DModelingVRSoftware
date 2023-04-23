@@ -58,7 +58,7 @@ public class LoopCutDemoInfo
     }
 
 
-    public void draw()
+    public void Draw()
     {
         // Draw the demo
         Gizmos.color = color;

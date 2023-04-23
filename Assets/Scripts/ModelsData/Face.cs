@@ -93,6 +93,58 @@ public class Face
         return _verticesIndex[(int)vertixPosition];
     }
 
+    public int GetOppositeVerticesIndex(VerticesPos oppositeVertixPosition)
+    {
+        VerticesPos vertixPosition = VerticesPos.topRight;
+
+        switch(oppositeVertixPosition)
+        {
+            case VerticesPos.topRight:
+                vertixPosition = VerticesPos.topLeft; 
+                break;
+            case VerticesPos.topLeft:
+                vertixPosition = VerticesPos.topRight;
+                break;
+            case VerticesPos.bottomLeft:
+                vertixPosition = VerticesPos.bottomRight;
+                break;
+            case VerticesPos.bottomRight:
+                vertixPosition = VerticesPos.bottomLeft;
+                break;
+        }
+
+        return GetVertixIndex(vertixPosition);
+    }
+
+    public Vector2Int GetOppositeLine(Direction dir)
+    {
+        return GetLine(_GetTheOppositeDirection(dir));
+    }
+
+    public Vector2Int GetLine(Direction dir)
+    {
+        Vector2Int line = new();
+
+        switch(dir)
+        {
+            case Direction.top:
+                line = new Vector2Int(_verticesIndex[(int)VerticesPos.topLeft], _verticesIndex[(int)VerticesPos.topRight]);
+                break;
+            case Direction.left:
+                line = new Vector2Int(_verticesIndex[(int)VerticesPos.topLeft], _verticesIndex[(int)VerticesPos.bottomLeft]);
+                break;
+            case Direction.bottom:
+                line = new Vector2Int(_verticesIndex[(int)VerticesPos.bottomLeft], _verticesIndex[(int)VerticesPos.bottomRight]);
+                break;
+            case Direction.right:
+                line = new Vector2Int(_verticesIndex[(int)VerticesPos.topRight], _verticesIndex[(int)VerticesPos.bottomRight]);
+                break;
+        }
+
+
+        return line;
+    }
+
     public Vector2Int[] GetLines(Direction dir)
     {
         Vector2Int[] lines = null;

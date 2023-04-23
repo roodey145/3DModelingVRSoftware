@@ -238,14 +238,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _initialized: 1
   strokeColor: {r: 0.8584906, g: 0.39279994, b: 0.39279994, a: 1}
-  cutPos: 0.596
-  faceIndex: 3
+  cutPos: 0.597
+  faceIndex: 0
   numberOfFaces: 24
-  cutHorizontally: 1
-  extrude: 1
-  extrudeAmount: 0.32
+  cutHorizontally: 0
+  extrude: 0
+  extrudeAmount: -2
+  bevel: 1
+  bevelAmount: 0.57
+  edgeDirection: 0
   applyChange: 0
-  faceToFillIndex: 0
+  faceToFillIndex: 1
   fillColor: {r: 0.14693263, g: 0.990566, b: 0, a: 1}
 --- !u!4 &200928521
 Transform:

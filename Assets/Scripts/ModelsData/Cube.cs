@@ -37,6 +37,11 @@ public class Cube : MonoBehaviour
     public float extrudeAmount = 0f;
     private ExtrudeDemoInfo extrudeDemo = null;
 
+    public bool bevel = false;
+    public float bevelAmount = 0f;
+    public Direction edgeDirection = Direction.top;
+    private BevelDemoInfo bevelDemo = null;
+
     public bool applyChange = false;
 
     public int faceToFillIndex = 0;
@@ -103,7 +108,22 @@ public class Cube : MonoBehaviour
             }
 
             extrudeDemo.SetExtrudeAmount(extrudeAmount);
-            extrudeDemo.draw(vertices);
+            extrudeDemo.Draw(vertices);
+        }
+
+        if(bevel && faces.Count > faceIndex && faceIndex >= 0)
+        {
+            if (bevelDemo == null)
+            {
+                bevelDemo = new BevelDemoInfo(faces[faceIndex], edgeDirection);
+            }
+            else if (bevelDemo.selectedFace != faces[faceIndex])
+            {
+                bevelDemo.selectedFace = faces[faceIndex];
+            }
+
+            bevelDemo.SetBevelAmount(bevelAmount);
+            bevelDemo.Draw(vertices);
         }
 
         if(applyChange && extrude && extrudeDemo != null)
@@ -138,11 +158,11 @@ public class Cube : MonoBehaviour
         }
 
         //Gizmos.color = Color.red;
-        draw();
+        Draw();
     }
 
     
-    public void draw()
+    public void Draw()
     {
         Vector2Int[] faceVertices;
 
@@ -180,12 +200,12 @@ public class Cube : MonoBehaviour
 
         if (extrude && extrudeDemo != null)
         { // The user want to extrude a face
-            extrudeDemo.draw(vertices);
+            extrudeDemo.Draw(vertices);
         }
 
         // Check if the demo shall be drown
         if (demo == null) return; // The demo shall not be drown
-        demo.draw();
+        demo.Draw();
     }
 
     public void LoopCut(Face firstCaller, Face caller, Face face, float cutPositionInPercent, Direction cutDirection, LoopCutDemoInfo demo)
