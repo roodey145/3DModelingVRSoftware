@@ -93,27 +93,64 @@ public class Face
         return _verticesIndex[(int)vertixPosition];
     }
 
-    public int GetOppositeVerticesIndex(VerticesPos oppositeVertixPosition)
+    public int GetOppositeVerticesIndex(int vertixIndex, Direction dir)
     {
         VerticesPos vertixPosition = VerticesPos.topRight;
+        VerticesPos oppositeVertixPosition = _GetVertixPosition(vertixIndex);
 
-        switch(oppositeVertixPosition)
-        {
-            case VerticesPos.topRight:
-                vertixPosition = VerticesPos.topLeft; 
-                break;
-            case VerticesPos.topLeft:
-                vertixPosition = VerticesPos.topRight;
-                break;
-            case VerticesPos.bottomLeft:
-                vertixPosition = VerticesPos.bottomRight;
-                break;
-            case VerticesPos.bottomRight:
-                vertixPosition = VerticesPos.bottomLeft;
-                break;
+        if (dir == Direction.left ||dir == Direction.right || dir == Direction.horizontal)
+        { // Opposite relative to the horizontal axis
+            switch (oppositeVertixPosition)
+            {
+                case VerticesPos.topRight:
+                    vertixPosition = VerticesPos.topLeft;
+                    break;
+                case VerticesPos.topLeft:
+                    vertixPosition = VerticesPos.topRight;
+                    break;
+                case VerticesPos.bottomLeft:
+                    vertixPosition = VerticesPos.bottomRight;
+                    break;
+                case VerticesPos.bottomRight:
+                    vertixPosition = VerticesPos.bottomLeft;
+                    break;
+            }
         }
+        else
+        { // Opposite relative to the vertical axis
+            switch (oppositeVertixPosition)
+            {
+                case VerticesPos.topRight:
+                    vertixPosition = VerticesPos.bottomRight;
+                    break;
+                case VerticesPos.topLeft:
+                    vertixPosition = VerticesPos.bottomLeft;
+                    break;
+                case VerticesPos.bottomLeft:
+                    vertixPosition = VerticesPos.topLeft;
+                    break;
+                case VerticesPos.bottomRight:
+                    vertixPosition = VerticesPos.topRight;
+                    break;
+            }
+        }
+        
 
         return GetVertixIndex(vertixPosition);
+    }
+
+    private VerticesPos _GetVertixPosition(int vertixIndex)
+    {
+        VerticesPos vertixPos = VerticesPos.topLeft;
+        for(int i = 0; i < _verticesIndex.Length; i++)
+        {
+            if(vertixIndex == _verticesIndex[i])
+            {
+                vertixPos = (VerticesPos)i;
+                break;
+            }
+        }
+        return vertixPos;
     }
 
     public Vector2Int GetOppositeLine(Direction dir)

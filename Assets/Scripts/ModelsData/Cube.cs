@@ -33,11 +33,14 @@ public class Cube : MonoBehaviour
     public bool cutHorizontally = true;
     private bool _lastCutHorizontally = true;
 
+    [Header("Extrude")]
     public bool extrude = false;
     public float extrudeAmount = 0f;
     private ExtrudeDemoInfo extrudeDemo = null;
 
+    [Header("Bevel")]
     public bool bevel = false;
+    [Range(1e-10f, 1f)]
     public float bevelAmount = 0f;
     public Direction edgeDirection = Direction.top;
     private BevelDemoInfo bevelDemo = null;
@@ -72,7 +75,7 @@ public class Cube : MonoBehaviour
         if(!_initialized || Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
             || _lastCutHorizontally != cutHorizontally || faceIndex != _lastCuttedFaceIndex)
         {
-            if(!_initialized)
+            if(!_initialized || faces.Count == 0)
             {
                 newFaces = new List<Face>();
                 _Initialize();
@@ -82,6 +85,10 @@ public class Cube : MonoBehaviour
             if(faceIndex >= faces.Count)
             {
                 faceIndex = faces.Count - 1;
+            }
+            else if(faceIndex < 0)
+            {
+                faceIndex = 0;
             }
 
 
@@ -122,6 +129,7 @@ public class Cube : MonoBehaviour
                 bevelDemo.selectedFace = faces[faceIndex];
             }
 
+            bevelDemo.edgeDirection = edgeDirection;
             bevelDemo.SetBevelAmount(bevelAmount);
             bevelDemo.Draw(vertices);
         }
@@ -343,8 +351,26 @@ public class Cube : MonoBehaviour
     #region Initialize
     private void _Initialize()
     {
-        vertices = new List<Vector3>();
+        vertices = new List<Vector3>(8);
         faces = new List<Face>();
+
+        for(int i = 0; i < 8; i++)
+        {
+            vertices.Add(new Vector3());
+        }
+
+        // Create the vertices of the cube
+        // Front vertices
+        vertices[(int)Face.VerticesPos.topLeft] = new Vector3(-0.5f, 0.5f, -0.5f);
+        vertices[(int)Face.VerticesPos.topRight] = new Vector3(0.5f, 0.5f, -0.5f);
+        vertices[(int)Face.VerticesPos.bottomRight] = new Vector3(0.5f, -0.5f, -0.5f);
+        vertices[(int)Face.VerticesPos.bottomLeft] = new Vector3(-0.5f, -0.5f, -0.5f);
+
+        // Back vertices
+        vertices[(int)Face.VerticesPos.topLeft + 4] = new Vector3(-0.5f, 0.5f, 0.5f);
+        vertices[(int)Face.VerticesPos.topRight + 4] = new Vector3(0.5f, 0.5f, 0.5f);
+        vertices[(int)Face.VerticesPos.bottomRight + 4] = new Vector3(0.5f, -0.5f, 0.5f);
+        vertices[(int)Face.VerticesPos.bottomLeft + 4] = new Vector3(-0.5f, -0.5f, 0.5f);
 
         //--------------------------------
         // Create front face
@@ -353,10 +379,10 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         int faceNr = 0;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft] = new Vector3(-0.5f, 0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.topRight] = new Vector3(0.5f, 0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight] = new Vector3(0.5f, -0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft] = new Vector3(-0.5f, -0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.topLeft] = new Vector3(-0.5f, 0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.topRight] = new Vector3(0.5f, 0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight] = new Vector3(0.5f, -0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft] = new Vector3(-0.5f, -0.5f, -0.5f);
         frontFace.SetVerticesIndex(new int[]
         {
             (int)Face.VerticesPos.topLeft,
@@ -375,17 +401,34 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         faceNr = 1;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(0.5f, 0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(0.5f, -0.5f, -0.5f);
-        rightFace.SetVerticesIndex(new int[]
-        {
-            (int)Face.VerticesPos.topLeft + (4 * faceNr),
-            (int)Face.VerticesPos.topRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
-        });
+        //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(0.5f, 0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(0.5f, -0.5f, -0.5f);
+        //rightFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topLeft + (4 * faceNr),
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        
+        int[] faceVertices = new int[4];
+        faceVertices[(int)Face.VerticesPos.topLeft] = (int)Face.VerticesPos.topRight;
+        faceVertices[(int)Face.VerticesPos.topRight] = (int)Face.VerticesPos.topRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomRight] = (int)Face.VerticesPos.bottomRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomLeft] = (int)Face.VerticesPos.bottomRight;
+
+        //rightFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topRight, // Top left
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        rightFace.SetVerticesIndex((int[])faceVertices.Clone());
 
         faces.Add(rightFace);
 
@@ -397,17 +440,25 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         faceNr = 2;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f); ;
-        backFace.SetVerticesIndex(new int[]
-        {
-            (int)Face.VerticesPos.topLeft + (4 * faceNr),
-            (int)Face.VerticesPos.topRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
-        });
+        //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
+
+        faceVertices[(int)Face.VerticesPos.topLeft] = (int)Face.VerticesPos.topLeft + 4;
+        faceVertices[(int)Face.VerticesPos.topRight] = (int)Face.VerticesPos.topRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomRight] = (int)Face.VerticesPos.bottomRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomLeft] = (int)Face.VerticesPos.bottomLeft + 4;
+
+        //backFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topLeft + (4 * faceNr),
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        backFace.SetVerticesIndex((int[])faceVertices.Clone());
 
         faces.Add(backFace);
 
@@ -420,17 +471,25 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         faceNr = 3;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, -0.5f);
-        leftFace.SetVerticesIndex(new int[]
-        {
-            (int)Face.VerticesPos.topLeft + (4 * faceNr),
-            (int)Face.VerticesPos.topRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
-        });
+        //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, -0.5f);
+
+        faceVertices[(int)Face.VerticesPos.topLeft] = (int)Face.VerticesPos.topLeft;
+        faceVertices[(int)Face.VerticesPos.topRight] = (int)Face.VerticesPos.topLeft + 4;
+        faceVertices[(int)Face.VerticesPos.bottomRight] = (int)Face.VerticesPos.bottomLeft + 4;
+        faceVertices[(int)Face.VerticesPos.bottomLeft] = (int)Face.VerticesPos.bottomLeft;
+
+        //leftFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topLeft + (4 * faceNr),
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        leftFace.SetVerticesIndex((int[])faceVertices.Clone());
 
         faces.Add(leftFace);
 
@@ -443,18 +502,25 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         faceNr = 4;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, -0.5f);
-        bottomFace.SetVerticesIndex(new int[]
-        {
-            (int)Face.VerticesPos.topLeft + (4 * faceNr),
-            (int)Face.VerticesPos.topRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
-        });
+        //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, -0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, -0.5f);
 
+        faceVertices[(int)Face.VerticesPos.topLeft] = (int)Face.VerticesPos.bottomLeft + 4;
+        faceVertices[(int)Face.VerticesPos.topRight] = (int)Face.VerticesPos.bottomRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomRight] = (int)Face.VerticesPos.bottomRight;
+        faceVertices[(int)Face.VerticesPos.bottomLeft] = (int)Face.VerticesPos.bottomLeft;
+
+        //bottomFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topLeft + (4 * faceNr),
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        bottomFace.SetVerticesIndex((int[])faceVertices.Clone());
         faces.Add(bottomFace);
 
 
@@ -465,18 +531,25 @@ public class Cube : MonoBehaviour
         _CreateEmptyFaceVertices();
         faceNr = 5;
         // Initalize the new vertices
-        vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
-        vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, -0.5f);
-        vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, -0.5f);
-        topFace.SetVerticesIndex(new int[]
-        {
-            (int)Face.VerticesPos.topLeft + (4 * faceNr),
-            (int)Face.VerticesPos.topRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomRight + (4 * faceNr),
-            (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
-        });
+        //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, 0.5f);
+        //vertices[(int)Face.VerticesPos.bottomRight + (4 * faceNr)] = new Vector3(0.5f, 0.5f, -0.5f);
+        //vertices[(int)Face.VerticesPos.bottomLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, -0.5f);
 
+        faceVertices[(int)Face.VerticesPos.topLeft] = (int)Face.VerticesPos.topLeft + 4;
+        faceVertices[(int)Face.VerticesPos.topRight] = (int)Face.VerticesPos.topRight + 4;
+        faceVertices[(int)Face.VerticesPos.bottomRight] = (int)Face.VerticesPos.topRight;
+        faceVertices[(int)Face.VerticesPos.bottomLeft] = (int)Face.VerticesPos.topLeft;
+
+        //topFace.SetVerticesIndex(new int[]
+        //{
+        //    (int)Face.VerticesPos.topLeft + (4 * faceNr),
+        //    (int)Face.VerticesPos.topRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomRight + (4 * faceNr),
+        //    (int)Face.VerticesPos.bottomLeft + (4 * faceNr)
+        //});
+
+        topFace.SetVerticesIndex((int[])faceVertices.Clone());
         faces.Add(topFace);
 
 

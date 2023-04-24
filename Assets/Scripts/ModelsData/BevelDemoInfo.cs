@@ -37,10 +37,25 @@ public class BevelDemoInfo
 
         // Get the required edges info
         Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
-        // Get the top line
-        Vector2Int topEdge = neighbour.GetOppositeLine(myDirectionRelativeToNeighbour);
+        
         // Get the bottom line
-        Vector2Int bottomEdge = selectedFace.GetOppositeLine(edgeDirection);
+        //Vector2Int bottomEdge = selectedFace.GetOppositeLine(edgeDirection);
+        Vector2Int bottomEdge =
+            new Vector2Int(
+                selectedFace.GetOppositeVerticesIndex(middleEdge.x, edgeDirection),
+                selectedFace.GetOppositeVerticesIndex(middleEdge.y, edgeDirection));
+
+        // Get the top line
+        /* To get the top line, we will take the middle line which is connecting the two faces. Take the index of the 
+         * first point, and get the opposite point to it using the get opposite vertix index. The opposite of a 
+         * vertix, is the vertix on the same provide axis. For instance, if the point is topLeft, and the face 
+         * direction is right/left that means the opposite point is the topRight. 
+         */
+        //Vector2Int topEdge = neighbour.GetOppositeLine(myDirectionRelativeToNeighbour);
+        Vector2Int topEdge = 
+            new Vector2Int(
+                neighbour.GetOppositeVerticesIndex(middleEdge.x, myDirectionRelativeToNeighbour),
+                neighbour.GetOppositeVerticesIndex(middleEdge.y, myDirectionRelativeToNeighbour) );
 
         int leftIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
         int rightIndex = leftIndex == 0 ? 1 : 0;
