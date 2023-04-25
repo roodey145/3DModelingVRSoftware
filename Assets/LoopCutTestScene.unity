@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -238,15 +238,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _initialized: 1
   strokeColor: {r: 0.8584906, g: 0.39279994, b: 0.39279994, a: 1}
-  cutPos: 0.559
-  faceIndex: 5
+  cutPos: 0.565
+  loopCut: 0
+  faceIndex: 0
   numberOfFaces: 16
   cutHorizontally: 0
   extrude: 1
-  extrudeAmount: -1
+  extrudeAmount: 1
   bevel: 1
-  bevelAmount: 0.47
-  edgeDirection: 0
+  bevelAmount: 0.4
+  edgeDirection: 3
   applyChange: 0
   faceToFillIndex: 11
   fillColor: {r: 0.14693263, g: 0.990566, b: 0, a: 1}

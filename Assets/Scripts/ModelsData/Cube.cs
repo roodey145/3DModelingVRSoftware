@@ -14,6 +14,7 @@ public class Cube : MonoBehaviour
 
     [Range(1e-15f, 0.9999999999999f)]
     public float cutPos = 0.5f;
+    public bool loopCut = false;
 
     //[Range(0, 5)]
     public int faceIndex = 0;
@@ -27,7 +28,7 @@ public class Cube : MonoBehaviour
 
     private List<Face> newFaces = new List<Face>();
 
-    LoopCutDemoInfo demo = null;
+    LoopCutDemoInfo loopCutDemo = null;
 
 
     public bool cutHorizontally = true;
@@ -70,32 +71,46 @@ public class Cube : MonoBehaviour
         Color.green,
         Color.blue
     };
+    bool newFaceIndex = false;
     private void OnDrawGizmos()
     {
-        if(!_initialized || Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
-            || _lastCutHorizontally != cutHorizontally || faceIndex != _lastCuttedFaceIndex)
+        if (!_initialized || faces.Count == 0)
         {
-            if(!_initialized || faces.Count == 0)
-            {
-                newFaces = new List<Face>();
-                _Initialize();
-                _initialized = true;
-            }
+            newFaces = new List<Face>();
+            _Initialize();
+            _initialized = true;
+        }
 
-            if(faceIndex >= faces.Count)
+        if(faceIndex != _lastCuttedFaceIndex)
+        {
+            newFaceIndex = true;
+            if (faceIndex >= faces.Count)
             {
                 faceIndex = faces.Count - 1;
             }
-            else if(faceIndex < 0)
+            else if (faceIndex < 0)
             {
                 faceIndex = 0;
             }
+        }
+
+        if (loopCut && (Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
+            || _lastCutHorizontally != cutHorizontally 
+            || newFaceIndex))
+        {
+
+            
 
 
             Face faceToCut = faces[faceIndex];
-            demo = new LoopCutDemoInfo();
-            LoopCut(faceToCut, faceToCut, faceToCut, cutPos, 
-                cutHorizontally ? Direction.horizontal : Direction.verctial, demo);
+            if (loopCutDemo == null)
+            {
+                loopCutDemo = new LoopCutDemoInfo(faceToCut, cutPos, cutHorizontally ? Direction.horizontal : Direction.verctial, vertices);
+            }
+
+            // Update the information of the loop cut 
+            loopCutDemo.UpdateInfo(faceToCut, cutPos, cutHorizontally ? Direction.horizontal : Direction.verctial);
+            
 
             _lastCutPos = cutPos;
             _lastCutHorizontally = cutHorizontally;
@@ -122,16 +137,31 @@ public class Cube : MonoBehaviour
         {
             if (bevelDemo == null)
             {
-                bevelDemo = new BevelDemoInfo(faces[faceIndex], edgeDirection);
+                bevelDemo = new BevelDemoInfo(faces[faceIndex], edgeDirection, vertices);
             }
             else if (bevelDemo.selectedFace != faces[faceIndex])
             {
-                bevelDemo.selectedFace = faces[faceIndex];
+                bevelDemo = new BevelDemoInfo(faces[faceIndex], edgeDirection, vertices);
+                //bevelDemo.selectedFace = faces[faceIndex];
             }
 
-            bevelDemo.edgeDirection = edgeDirection;
-            bevelDemo.SetBevelAmount(bevelAmount);
+            if(Mathf.Abs(bevelAmount - bevelDemo.bevelAmount) > 1e-5)
+            {
+                bevelDemo.SetBevelAmount(bevelAmount);
+            }
+            
+            if(edgeDirection != bevelDemo.edgeDirection)
+            {
+                bevelDemo = new BevelDemoInfo(faces[faceIndex], edgeDirection, vertices);
+
+                //bevelDemo.UpdateEdgeDirection(edgeDirection);
+            }
+
+            //bevelDemo.edgeDirection = edgeDirection;
             bevelDemo.Draw(vertices);
+        } else if(bevelDemo != null)
+        {
+            bevelDemo = null;
         }
 
         if(applyChange && extrude && extrudeDemo != null)
@@ -146,24 +176,26 @@ public class Cube : MonoBehaviour
             extrudeDemo = null;
             applyChange = false;
         }
-        else if (applyChange && demo != null)
+        else if (applyChange && loopCutDemo != null)
         {
-            demo.ApplyChange(vertices, faces);
+            loopCutDemo.ApplyChange(vertices, faces);
 
             numberOfFaces = faces.Count;
             newFaces.Clear();
 
-            for(int i = 0; i < demo.faces.Count; i++)
+            for(int i = 0; i < loopCutDemo.faces.Count; i++)
             {
-                for(int l = 0; l < demo.faces[i].subFaces.Length; l++)
+                for(int l = 0; l < loopCutDemo.faces[i].subFaces.Length; l++)
                 {
-                    newFaces.Add(demo.faces[i].subFaces[l]);
+                    newFaces.Add(loopCutDemo.faces[i].subFaces[l]);
                 }
                 
             }
-            demo = null;
+            loopCutDemo = null;
             applyChange = false;
         }
+
+        newFaceIndex = false;
 
         //Gizmos.color = Color.red;
         Draw();
@@ -212,138 +244,138 @@ public class Cube : MonoBehaviour
         }
 
         // Check if the demo shall be drown
-        if (demo == null) return; // The demo shall not be drown
-        demo.Draw();
+        if (loopCutDemo == null) return; // The demo shall not be drown
+        loopCutDemo.Draw();
     }
 
-    public void LoopCut(Face firstCaller, Face caller, Face face, float cutPositionInPercent, Direction cutDirection, LoopCutDemoInfo demo)
-    {
-        Face newFace;
-        Face[] newFaces;
-        if (cutDirection == Direction.verctial)
-        {
-            newFaces = _CutVertically(face, cutPositionInPercent, demo);
-            newFace = face.GetNeighbourFace(caller, Direction.top);            
-        }
-        else
-        {
-            newFaces = _CutHorizontally(face, cutPositionInPercent, demo);
-            newFace = face.GetNeighbourFace(caller, Direction.right);
-        }
+    //public void LoopCut(Face firstCaller, Face caller, Face face, float cutPositionInPercent, Direction cutDirection, LoopCutDemoInfo demo)
+    //{
+    //    Face newFace;
+    //    Face[] newFaces;
+    //    if (cutDirection == Direction.verctial)
+    //    {
+    //        newFaces = _CutVertically(face, cutPositionInPercent, demo);
+    //        newFace = face.GetNeighbourFace(caller, Direction.top);            
+    //    }
+    //    else
+    //    {
+    //        newFaces = _CutHorizontally(face, cutPositionInPercent, demo);
+    //        newFace = face.GetNeighbourFace(caller, Direction.right);
+    //    }
 
-        //faces.Add(newFaces[0]);
-        //faces.Add(newFaces[1]);
+    //    //faces.Add(newFaces[0]);
+    //    //faces.Add(newFaces[1]);
 
-        demo.SetNewFace(face, newFaces, cutDirection);
+    //    demo.SetNewFace(face, newFaces, cutDirection);
 
-        if(demo.faces.Count > 100)
-        {
-            print("Reached Faces Limit");
-            return;
-        }
+    //    if(demo.faces.Count > 100)
+    //    {
+    //        print("Reached Faces Limit");
+    //        return;
+    //    }
 
 
-        print($"Move from {face.name} face to {newFace.name} face");
+    //    print($"Move from {face.name} face to {newFace.name} face");
 
-        // Make sure that the new face is not the current face
-        if (newFace != firstCaller)
-        { // The loop is not completed yet
+    //    // Make sure that the new face is not the current face
+    //    if (newFace != firstCaller)
+    //    { // The loop is not completed yet
 
-            Direction newCutDirection = newFace.GetCutDirection(face);
+    //        Direction newCutDirection = newFace.GetCutDirection(face);
 
-            // Check if there is a shift in the cut direction from vertical to horizontal or the otherway around.
-            if(cutDirection != newCutDirection)
-            {
-                cutPositionInPercent = 1 - cutPositionInPercent;
-            }
+    //        // Check if there is a shift in the cut direction from vertical to horizontal or the otherway around.
+    //        if(cutDirection != newCutDirection)
+    //        {
+    //            cutPositionInPercent = 1 - cutPositionInPercent;
+    //        }
 
-            // Call the loop cut function to cut the next face
-            LoopCut(firstCaller, face, newFace, cutPositionInPercent, newCutDirection, demo);
-        }
+    //        // Call the loop cut function to cut the next face
+    //        LoopCut(firstCaller, face, newFace, cutPositionInPercent, newCutDirection, demo);
+    //    }
         
-    }
+    //}
 
 
-    private Face[] _CutHorizontally(Face face, float cutPositionInPercent, LoopCutDemoInfo demo)
-    {
-        // Cut verticlly
-        Vector2Int[] horizontalLines = face.GetLines(Direction.verctial);
+    //private Face[] _CutHorizontally(Face face, float cutPositionInPercent, LoopCutDemoInfo demo)
+    //{
+    //    // Cut verticlly
+    //    Vector2Int[] horizontalLines = face.GetLines(Direction.verctial);
 
-        // Calculate the position of the new vertices
-        int topLineIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
-        int bottomLineIndex = (int)Direction.left < (int)Direction.right ? 1 : 0;
-        Vector3 leftCut =
-            Vector3.Lerp(
-                vertices[horizontalLines[topLineIndex].x],
-                vertices[horizontalLines[topLineIndex].y],
-                cutPositionInPercent);
+    //    // Calculate the position of the new vertices
+    //    int topLineIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
+    //    int bottomLineIndex = (int)Direction.left < (int)Direction.right ? 1 : 0;
+    //    Vector3 leftCut =
+    //        Vector3.Lerp(
+    //            vertices[horizontalLines[topLineIndex].x],
+    //            vertices[horizontalLines[topLineIndex].y],
+    //            cutPositionInPercent);
 
-        Vector3 rightCut =
-            Vector3.Lerp(
-                vertices[horizontalLines[bottomLineIndex].x],
-                vertices[horizontalLines[bottomLineIndex].y],
-                cutPositionInPercent);
+    //    Vector3 rightCut =
+    //        Vector3.Lerp(
+    //            vertices[horizontalLines[bottomLineIndex].x],
+    //            vertices[horizontalLines[bottomLineIndex].y],
+    //            cutPositionInPercent);
 
-        // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
-        // Add the points to the vertices
-        demo.vertices.Add(leftCut);
-        int leftVertixIndex = demo.vertices.Count - 1 + vertices.Count;
-        demo.vertices.Add(rightCut);
-        int rightVertixIndex = demo.vertices.Count - 1 + vertices.Count;
+    //    // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
+    //    // Add the points to the vertices
+    //    demo.vertices.Add(leftCut);
+    //    int leftVertixIndex = demo.vertices.Count - 1 + vertices.Count;
+    //    demo.vertices.Add(rightCut);
+    //    int rightVertixIndex = demo.vertices.Count - 1 + vertices.Count;
 
         
 
 
-        Vector2Int cutThrough = new Vector2Int();
-        cutThrough.x = (int)Direction.left < (int)Direction.right ? leftVertixIndex : rightVertixIndex;
-        cutThrough.y = (int)Direction.left < (int)Direction.right ? rightVertixIndex : leftVertixIndex;
+    //    Vector2Int cutThrough = new Vector2Int();
+    //    cutThrough.x = (int)Direction.left < (int)Direction.right ? leftVertixIndex : rightVertixIndex;
+    //    cutThrough.y = (int)Direction.left < (int)Direction.right ? rightVertixIndex : leftVertixIndex;
 
-        Face[] newFaces = face.Split(cutThrough, 0, Direction.horizontal);
+    //    Face[] newFaces = face.Split(cutThrough, 0, Direction.horizontal);
 
-        print($"The {face.name} face is being cut horizontally");
-
-
-        return newFaces;
-    }
+    //    print($"The {face.name} face is being cut horizontally");
 
 
-    private Face[] _CutVertically(Face face, float cutPositionInPercent, LoopCutDemoInfo demo)
-    {
-        // Cut verticlly
-        Vector2Int[] verticalLines = face.GetLines(Direction.horizontal);
-
-        // Calculate the position of the new vertices
-        int topLineIndex = (int)Direction.top < (int)Direction.bottom ? 0 : 1;
-        int bottomLineIndex = (int)Direction.top < (int)Direction.bottom ? 1 : 0;
-        Vector3 topCut =
-            Vector3.Lerp(
-                vertices[verticalLines[topLineIndex].x],
-                vertices[verticalLines[topLineIndex].y],
-                cutPositionInPercent);
-
-        Vector3 bottomCut =
-            Vector3.Lerp(
-                vertices[verticalLines[bottomLineIndex].x],
-                vertices[verticalLines[bottomLineIndex].y],
-                cutPositionInPercent);
-
-        // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
-        // Add the points to the vertices
-        demo.vertices.Add(topCut);
-        int topVertixIndex = demo.vertices.Count - 1 + vertices.Count;
-        demo.vertices.Add(bottomCut);
-        int bottomVertixIndex = demo.vertices.Count - 1 + vertices.Count;
-
-        Vector2Int cutThrough = new Vector2Int();
-        cutThrough.x = (int)Direction.top < (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
-        cutThrough.y = (int)Direction.top > (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
-
-        Face[] newFaces = face.Split(cutThrough, 0, Direction.verctial);
-        print($"The {face.name} face is being cut vertically");
+    //    return newFaces;
+    //}
 
 
-        return newFaces;
-    }
+    //private Face[] _CutVertically(Face face, float cutPositionInPercent, LoopCutDemoInfo demo)
+    //{
+    //    // Cut verticlly
+    //    Vector2Int[] verticalLines = face.GetLines(Direction.horizontal);
+
+    //    // Calculate the position of the new vertices
+    //    int topLineIndex = (int)Direction.top < (int)Direction.bottom ? 0 : 1;
+    //    int bottomLineIndex = (int)Direction.top < (int)Direction.bottom ? 1 : 0;
+    //    Vector3 topCut =
+    //        Vector3.Lerp(
+    //            vertices[verticalLines[topLineIndex].x],
+    //            vertices[verticalLines[topLineIndex].y],
+    //            cutPositionInPercent);
+
+    //    Vector3 bottomCut =
+    //        Vector3.Lerp(
+    //            vertices[verticalLines[bottomLineIndex].x],
+    //            vertices[verticalLines[bottomLineIndex].y],
+    //            cutPositionInPercent);
+
+    //    // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
+    //    // Add the points to the vertices
+    //    demo.vertices.Add(topCut);
+    //    int topVertixIndex = demo.vertices.Count - 1 + vertices.Count;
+    //    demo.vertices.Add(bottomCut);
+    //    int bottomVertixIndex = demo.vertices.Count - 1 + vertices.Count;
+
+    //    Vector2Int cutThrough = new Vector2Int();
+    //    cutThrough.x = (int)Direction.top < (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
+    //    cutThrough.y = (int)Direction.top > (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
+
+    //    Face[] newFaces = face.Split(cutThrough, 0, Direction.verctial);
+    //    print($"The {face.name} face is being cut vertically");
+
+
+    //    return newFaces;
+    //}
 
 
 

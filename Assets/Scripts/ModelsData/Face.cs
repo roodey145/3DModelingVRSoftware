@@ -182,6 +182,74 @@ public class Face
         return line;
     }
 
+    public Vector2Int GetConnectingEdge(Face neighbourFace)
+    {
+        Vector2Int edge = new Vector2Int();
+        int point = 0;
+        for(int i = 0; i < _verticesIndex.Length; i++)
+        {
+            for(int nI = 0; nI < neighbourFace._verticesIndex.Length; nI++)
+            {
+                if (_verticesIndex[i] == neighbourFace._verticesIndex[nI])
+                {
+                    edge[point++] = _verticesIndex[i];
+                    break; // Move on to the next point in the outer loop
+                }
+            }
+        }
+
+        return edge;
+    }
+
+    public Direction GetEdgeDirection(Vector2Int edge)
+    {
+        VerticesPos[] verticesPosition = new VerticesPos[2];
+        // Check the vertix of the first and second points
+        for(int i = 0; i < 2; i++)
+        {
+            for(int vI = 0; vI < _verticesIndex.Length; vI++)
+            {
+                if (edge[i] == _verticesIndex[vI])
+                { // The vertix has been found
+                    verticesPosition[i] = (VerticesPos)vI; // Store the position of the vertix and not the index
+                }
+            }
+        }
+
+
+        return _GetEdgeDirection(verticesPosition[0], verticesPosition[1]);
+    }
+
+    private Direction _GetEdgeDirection(VerticesPos vertix1, VerticesPos vertix2)
+    {
+        Direction dir = Direction.right;
+
+        if(
+            (vertix1 == VerticesPos.topLeft && vertix2 == VerticesPos.topRight) ||
+            (vertix1 == VerticesPos.topRight && vertix2 == VerticesPos.topLeft)
+            )
+        { // Top line
+            dir = Direction.top;
+        }
+        else if (
+            (vertix1 == VerticesPos.bottomLeft && vertix2 == VerticesPos.bottomRight) ||
+            (vertix1 == VerticesPos.bottomRight && vertix2 == VerticesPos.bottomLeft)
+            )
+        { // Bottom line
+            dir = Direction.bottom;
+        }
+        else if (
+            (vertix1 == VerticesPos.topLeft && vertix2 == VerticesPos.bottomLeft) ||
+            (vertix1 == VerticesPos.bottomLeft && vertix2 == VerticesPos.topLeft)
+            )
+        { // Left line
+            dir = Direction.left;
+        }
+
+
+        return dir;
+    }
+
     public Vector2Int[] GetLines(Direction dir)
     {
         Vector2Int[] lines = null;

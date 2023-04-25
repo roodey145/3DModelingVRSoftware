@@ -7,25 +7,79 @@ public class BevelDemoInfo
     Color color = new Color(1f, 0.1f, 1f);
     public Vector3[] vertices = new Vector3[6]; // The lst two are for the middle points
     public float bevelAmount = 0f; // A value between 0 and 1
+    private bool _oppositeLoopCut = false; // The direction of the cut 0 or 1
     public Face selectedFace;
     public Direction edgeDirection = Direction.top;
 
     private LoopCutDemoInfo loopCutDemo;
 
-    public BevelDemoInfo(Face selectedFace, Direction edgeDirection)
+    public BevelDemoInfo(Face selectedFace, Direction edgeDirection, List<Vector3> vertices)
     {
         this.selectedFace = selectedFace;
         this.edgeDirection = edgeDirection;
 
-        loopCutDemo= new LoopCutDemoInfo();
+
+        // Get the neighbour face direction
+        Face neighbour = selectedFace.GetNeighbourFace(selectedFace, edgeDirection);
+
+        // Get the required edges info
+        //Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
+        Vector2Int middleEdge = selectedFace.GetConnectingEdge(neighbour);
+        Direction connectingEdgeDirection = selectedFace.GetEdgeDirection(middleEdge);
+
+
+        Direction cutDirection = Direction.horizontal;
+        if(connectingEdgeDirection == Direction.left || connectingEdgeDirection == Direction.right)
+        {
+            cutDirection = Direction.verctial;
+        }
+
+        if(connectingEdgeDirection == Direction.top || connectingEdgeDirection == Direction.left)
+        {
+            _oppositeLoopCut = true;
+        }
+        else
+        {
+            _oppositeLoopCut = false;
+        }
+
+        loopCutDemo = new LoopCutDemoInfo(selectedFace, bevelAmount, cutDirection, connectingEdgeDirection, vertices);
     }
 
 
     public void SetBevelAmount(float amount)
     {
         this.bevelAmount = amount;
+        //loopCutDemo.UpdateCutPosition(Mathf.Abs((_oppositeLoopCut? 1f : 0f) - amount));
+        loopCutDemo.UpdateCutPosition(amount);
     }
 
+    public void UpdateEdgeDirection(Direction edgeDirection)
+    {
+        _UpdateLoopCutInfo(edgeDirection);
+        this.edgeDirection = edgeDirection;
+    }
+
+    private void _UpdateLoopCutInfo(Direction edgeDirection)
+    {
+        Direction cutDirection = Direction.horizontal;
+        if (edgeDirection == Direction.left || edgeDirection == Direction.right)
+        {
+            cutDirection = Direction.verctial;
+        }
+
+        if (edgeDirection == Direction.top || edgeDirection == Direction.left)
+        {
+            _oppositeLoopCut = false;
+        }
+        else
+        {
+            _oppositeLoopCut = false;
+        }
+
+        loopCutDemo.UpdateCutDirection(cutDirection);
+        SetBevelAmount(bevelAmount); // Force redraw
+    }
 
     private void _CalcVerticesPosition(List<Vector3> originalVertices)
     {
@@ -36,8 +90,12 @@ public class BevelDemoInfo
             neighbour.GetNeighbourDirection(selectedFace);
 
         // Get the required edges info
-        Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
-        
+        //Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
+        Vector2Int middleEdge = selectedFace.GetConnectingEdge(neighbour);
+        Direction connectingEdgeDirection = selectedFace.GetEdgeDirection(middleEdge);
+
+        //_UpdateLoopCutInfo(connectingEdgeDirection);
+
         // Get the bottom line
         //Vector2Int bottomEdge = selectedFace.GetOppositeLine(edgeDirection);
         Vector2Int bottomEdge =
@@ -126,5 +184,7 @@ public class BevelDemoInfo
 
         // Draw the right Line
         Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topRight], vertices[(int)Face.VerticesPos.bottomRight]);
+
+        loopCutDemo.Draw();
     }
 }
