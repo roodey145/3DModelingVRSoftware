@@ -194,6 +194,11 @@ public class Cube : MonoBehaviour
             loopCutDemo = null;
             applyChange = false;
         }
+        else if(applyChange && bevel && bevelDemo != null)
+        {
+            applyChange = false;
+            bevelDemo.ApplyChange(vertices, faces);
+        }
 
         newFaceIndex = false;
 
@@ -216,7 +221,7 @@ public class Cube : MonoBehaviour
             {
                 
                 Gizmos.DrawLine(vertices[faceVertices[l].x], vertices[faceVertices[l].y]);
-            }
+            } 
         }
 
         if (faces.Count == 0) return;

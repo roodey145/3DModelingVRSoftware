@@ -11,6 +11,10 @@ public class BevelDemoInfo
     public Face selectedFace;
     public Direction edgeDirection = Direction.top;
 
+    private Vector2Int middleEdge;
+    private Vector2Int bottomEdge;
+    private Vector2Int topEdge;
+
     private LoopCutDemoInfo loopCutDemo;
 
     public BevelDemoInfo(Face selectedFace, Direction edgeDirection, List<Vector3> vertices)
@@ -46,7 +50,7 @@ public class BevelDemoInfo
         loopCutDemo = new LoopCutDemoInfo(selectedFace, bevelAmount, cutDirection, connectingEdgeDirection, vertices);
     }
 
-
+    #region Update Info
     public void SetBevelAmount(float amount)
     {
         this.bevelAmount = amount;
@@ -91,14 +95,14 @@ public class BevelDemoInfo
 
         // Get the required edges info
         //Vector2Int middleEdge = selectedFace.GetLine(edgeDirection);
-        Vector2Int middleEdge = selectedFace.GetConnectingEdge(neighbour);
+        /*Vector2Int*/ middleEdge = selectedFace.GetConnectingEdge(neighbour);
         Direction connectingEdgeDirection = selectedFace.GetEdgeDirection(middleEdge);
 
         //_UpdateLoopCutInfo(connectingEdgeDirection);
 
         // Get the bottom line
         //Vector2Int bottomEdge = selectedFace.GetOppositeLine(edgeDirection);
-        Vector2Int bottomEdge =
+        /*Vector2Int*/ bottomEdge =
             new Vector2Int(
                 selectedFace.GetOppositeVerticesIndex(middleEdge.x, edgeDirection),
                 selectedFace.GetOppositeVerticesIndex(middleEdge.y, edgeDirection));
@@ -110,7 +114,7 @@ public class BevelDemoInfo
          * direction is right/left that means the opposite point is the topRight. 
          */
         //Vector2Int topEdge = neighbour.GetOppositeLine(myDirectionRelativeToNeighbour);
-        Vector2Int topEdge = 
+        /*Vector2Int*/ topEdge = 
             new Vector2Int(
                 neighbour.GetOppositeVerticesIndex(middleEdge.x, myDirectionRelativeToNeighbour),
                 neighbour.GetOppositeVerticesIndex(middleEdge.y, myDirectionRelativeToNeighbour) );
@@ -163,16 +167,16 @@ public class BevelDemoInfo
                 vertices[(int)Face.VerticesPos.bottomRight],
                 0.5f);
     }
-
+    #endregion
 
     public void Draw(List<Vector3> originalVertices)
     {
         _CalcVerticesPosition(originalVertices);
 
-        Gizmos.color = color;
+        Gizmos.color = Color.yellow;
         // Draw the top line
         Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topLeft], vertices[(int)Face.VerticesPos.topRight]);
-
+        Gizmos.color = color;
         // Draw the ceneter line
         Gizmos.DrawLine(vertices[4], vertices[5]);
 
@@ -186,5 +190,60 @@ public class BevelDemoInfo
         Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topRight], vertices[(int)Face.VerticesPos.bottomRight]);
 
         loopCutDemo.Draw();
+    }
+
+
+    public void ApplyChange(List<Vector3> originalVertices, List<Face> originalFaces)
+    {
+        // Print the first face subfaces info information
+        MonoBehaviour.print("Face 1: \n");
+        for (int i = 0; i < 4; i++)
+        {
+            int vertixIndex = loopCutDemo.faces[0].subFaces[0].GetVertixIndex((Face.VerticesPos)i);
+            MonoBehaviour.print("Vertix Index: " + vertixIndex);
+            if (vertixIndex >= originalVertices.Count)
+            {
+                MonoBehaviour.print(loopCutDemo._vertices[vertixIndex - originalVertices.Count]);
+            }
+            else
+            {
+                MonoBehaviour.print(originalVertices[vertixIndex]);
+            }
+        }
+    
+
+
+        // Print the first face subfaces info information
+        MonoBehaviour.print("Face 2: \n");
+        for (int i = 0; i < 4; i++)
+        {
+            int vertixIndex = loopCutDemo.faces[0].subFaces[1].GetVertixIndex((Face.VerticesPos)i);
+            MonoBehaviour.print("Vertix Index: " + vertixIndex);
+            if (vertixIndex >= originalVertices.Count)
+            {
+                MonoBehaviour.print(loopCutDemo._vertices[vertixIndex - originalVertices.Count]);
+            }
+            else
+            {
+                MonoBehaviour.print(originalVertices[vertixIndex]);
+            }
+        }
+
+        // Print the bevel lines info
+        //MonoBehaviour.print("Top Edge: (" + vertices[(int)Face.VerticesPos.topLeft] + ", " + vertices[(int)Face.VerticesPos.topRight] + ")");
+        //MonoBehaviour.print("Bottom Edge: (" + vertices[(int)Face.VerticesPos.bottomLeft] + ", " + vertices[(int)Face.VerticesPos.bottomRight] + ")");
+
+        Vector2Int selectedEdge = selectedFace.GetLine(edgeDirection);
+        MonoBehaviour.print("Selected Edge: " + selectedEdge);
+        MonoBehaviour.print("Middle Edge: " + middleEdge);
+        MonoBehaviour.print("Top Edge: " + topEdge);
+
+        // The face that shall be adjusted has the same vertices index as the line at the "edgeDirection"
+        // Update the vertices which connect the line at "edgeDirection"
+        originalVertices[selectedEdge.x] = vertices[(int)Face.VerticesPos.topRight];
+        originalVertices[selectedEdge.y] = vertices[(int)Face.VerticesPos.topLeft];
+
+        loopCutDemo.ApplyChange(originalVertices, originalFaces);
+
     }
 }

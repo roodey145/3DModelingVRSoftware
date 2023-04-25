@@ -38,8 +38,8 @@ public class LoopCutDemoInfo
     private bool _flippedCutPosition = false;
 
     public Color color = Color.white;
-    private List<Vector3> _vertices = new List<Vector3>();
-    public List<Vector3> originalVertices = new List<Vector3>();
+    public List<Vector3> _vertices = new List<Vector3>(); // Demo vertices
+    public List<Vector3> originalVertices = new List<Vector3>(); // Object vertices
     public List<CutInfo> faces = new List<CutInfo>();
     public List<Direction> direction = new List<Direction>();
 
@@ -391,11 +391,11 @@ public class LoopCutDemoInfo
 
         SetNewFace(face, newFaces, cutDirection);
 
-        if (faces.Count > 100)
-        {
-            MonoBehaviour.print("Reached Faces Limit");
-            return;
-        }
+        //if (faces.Count > 100)
+        //{
+        //    MonoBehaviour.print("Reached Faces Limit");
+        //    return;
+        //}
 
 
         MonoBehaviour.print($"Move from {face.name} face to {newFace.name} face");
