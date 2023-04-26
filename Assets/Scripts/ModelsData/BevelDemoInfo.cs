@@ -169,9 +169,26 @@ public class BevelDemoInfo
     }
     #endregion
 
+    private void DrawFace(Vector3[] faceVertices)
+    {
+        // Draw the top line
+        Gizmos.DrawLine(faceVertices[(int)Face.VerticesPos.topLeft], faceVertices[(int)Face.VerticesPos.topRight]);
+
+        // Draw the bottom line
+        Gizmos.DrawLine(faceVertices[(int)Face.VerticesPos.bottomLeft], faceVertices[(int)Face.VerticesPos.bottomRight]);
+
+        // Draw the left Line
+        Gizmos.DrawLine(faceVertices[(int)Face.VerticesPos.topLeft], faceVertices[(int)Face.VerticesPos.bottomLeft]);
+
+        // Draw the right Line
+        Gizmos.DrawLine(faceVertices[(int)Face.VerticesPos.topRight], faceVertices[(int)Face.VerticesPos.bottomRight]);
+    }
+
     public void Draw(List<Vector3> originalVertices)
     {
         _CalcVerticesPosition(originalVertices);
+
+        loopCutDemo.Draw();
 
         Gizmos.color = Color.yellow;
         // Draw the top line
@@ -189,7 +206,66 @@ public class BevelDemoInfo
         // Draw the right Line
         Gizmos.DrawLine(vertices[(int)Face.VerticesPos.topRight], vertices[(int)Face.VerticesPos.bottomRight]);
 
-        loopCutDemo.Draw();
+
+        // Draw the sub face that is to be modified
+        Vector2Int selectedEdge = selectedFace.GetLine(edgeDirection);
+
+        
+
+        int indexOfSubFace = -1;
+        for(int subFaceI = 0; subFaceI < 2; subFaceI++)
+        {
+            for(int verI = 0; verI < 4; verI++)
+            {
+                if (loopCutDemo.faces[0].subFaces[subFaceI].GetVertixIndex((Face.VerticesPos)verI) == middleEdge.x
+                    || loopCutDemo.faces[0].subFaces[subFaceI].GetVertixIndex((Face.VerticesPos)verI) == middleEdge.y)
+                {
+                    indexOfSubFace = subFaceI;
+                    break;
+                } 
+            }
+
+            if (indexOfSubFace != -1) break;
+        }
+
+        Face subFaceToBeModified = loopCutDemo.faces[0].subFaces[indexOfSubFace];
+        int[] subFaceVIndex = subFaceToBeModified._verticesIndex;
+
+        Vector3[] subFaceVertices = new Vector3[4];
+
+        for(int i = 0; i < subFaceVIndex.Length; i++)
+        {
+            if (subFaceVIndex[i] >= originalVertices.Count)
+            {
+                subFaceVertices[i] = loopCutDemo._vertices[subFaceVIndex[i] - originalVertices.Count];
+            }
+            else
+            {
+                subFaceVertices[i] = originalVertices[subFaceVIndex[i]];
+            }
+        }
+
+        
+        Gizmos.color = new Color(0f, 1f, 0f);
+        DrawFace(subFaceVertices);
+
+        // Draw the parent face
+        Face parentFace = loopCutDemo.faces[0].original;
+
+        // Get parent face vertices
+        Vector3[] parentFaceVertices = new Vector3[4];
+        for(int i = 0; i < parentFace._verticesIndex.Length; i++)
+        {
+            parentFaceVertices[i] = originalVertices[parentFace._verticesIndex[i]];
+        }
+
+        Gizmos.color = Color.black;
+        //DrawFace(parentFaceVertices);
+
+        Gizmos.color = Color.yellow;
+        // Draw the edge at the selected direction
+        Gizmos.DrawLine(originalVertices[middleEdge.x], originalVertices[middleEdge.y]);
+
     }
 
 
@@ -240,8 +316,8 @@ public class BevelDemoInfo
 
         // The face that shall be adjusted has the same vertices index as the line at the "edgeDirection"
         // Update the vertices which connect the line at "edgeDirection"
-        originalVertices[selectedEdge.x] = vertices[(int)Face.VerticesPos.topRight];
-        originalVertices[selectedEdge.y] = vertices[(int)Face.VerticesPos.topLeft];
+        originalVertices[middleEdge.x] = vertices[(int)Face.VerticesPos.topRight];
+        originalVertices[middleEdge.y] = vertices[(int)Face.VerticesPos.topLeft];
 
         loopCutDemo.ApplyChange(originalVertices, originalFaces);
 

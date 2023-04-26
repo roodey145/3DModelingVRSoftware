@@ -20,7 +20,7 @@ public class Face
         bottomLeft = 3
     }
 
-    private int[] _verticesIndex; // TopLeft, topRight, bottomRight, bottomLeft
+    public int[] _verticesIndex; // TopLeft, topRight, bottomRight, bottomLeft
     private Vector2Int[] _lines;
     private Face[] _faces; // Neighbour faces
 

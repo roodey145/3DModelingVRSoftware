@@ -130,7 +130,7 @@ public class Cube : MonoBehaviour
             }
 
             extrudeDemo.SetExtrudeAmount(extrudeAmount);
-            extrudeDemo.Draw(vertices);
+            //extrudeDemo.Draw(vertices);
         }
 
         if(bevel && faces.Count > faceIndex && faceIndex >= 0)
@@ -158,7 +158,7 @@ public class Cube : MonoBehaviour
             }
 
             //bevelDemo.edgeDirection = edgeDirection;
-            bevelDemo.Draw(vertices);
+            
         } else if(bevelDemo != null)
         {
             bevelDemo = null;
@@ -225,6 +225,7 @@ public class Cube : MonoBehaviour
         }
 
         if (faces.Count == 0) return;
+        if(faceIndex >= faces.Count) faceIndex = faces.Count - 1;
         faceVertices = faces[faceIndex].GetLines(Direction.all);
         Gizmos.color = Color.cyan;
         for (int l = 0; l < faceVertices.Length; l++)
@@ -249,8 +250,16 @@ public class Cube : MonoBehaviour
         }
 
         // Check if the demo shall be drown
-        if (loopCutDemo == null) return; // The demo shall not be drown
-        loopCutDemo.Draw();
+        if (loopCut && loopCutDemo != null)
+        {
+            loopCutDemo.Draw();
+        }
+
+        // Check if the bevel shall be drown
+        if(bevel && bevelDemo != null)
+        {
+            bevelDemo.Draw(vertices);
+        }
     }
 
     //public void LoopCut(Face firstCaller, Face caller, Face face, float cutPositionInPercent, Direction cutDirection, LoopCutDemoInfo demo)
