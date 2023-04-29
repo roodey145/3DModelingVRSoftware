@@ -228,6 +228,22 @@ public class BevelDemoInfo
             if (indexOfSubFace != -1) break;
         }
 
+
+        if(indexOfSubFace == -1)
+        {
+            Gizmos.color = new Color(0.5f, 1f, 0.5f);
+            Face neighbour = selectedFace.GetNeighbourFace(selectedFace, edgeDirection);
+            int[] neighbourVI = neighbour._verticesIndex;
+            Vector3[] neighbourVertices = new Vector3[4];
+            neighbourVertices[0] = originalVertices[neighbourVI[0]];
+            neighbourVertices[1] = originalVertices[neighbourVI[1]];
+            neighbourVertices[2] = originalVertices[neighbourVI[2]];
+            neighbourVertices[3] = originalVertices[neighbourVI[3]];
+            DrawFace(neighbourVertices);
+            MonoBehaviour.print("FACE ERROR");
+            return;
+        }
+
         Face subFaceToBeModified = loopCutDemo.faces[0].subFaces[indexOfSubFace];
         int[] subFaceVIndex = subFaceToBeModified._verticesIndex;
 

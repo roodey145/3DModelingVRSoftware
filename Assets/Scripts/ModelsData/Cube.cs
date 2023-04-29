@@ -65,11 +65,12 @@ public class Cube : MonoBehaviour
     }
 
 
-    Color[] colors = new Color[]
+    static Color[] colors = new Color[]
     {
         Color.red,
         Color.green,
-        Color.blue
+        Color.blue,
+        Color.black
     };
     bool newFaceIndex = false;
     private void OnDrawGizmos()
@@ -78,6 +79,11 @@ public class Cube : MonoBehaviour
         {
             newFaces = new List<Face>();
             _Initialize();
+
+            loopCutDemo = null;
+            extrudeDemo = null;
+            bevelDemo = null;
+
             _initialized = true;
         }
 
@@ -94,9 +100,10 @@ public class Cube : MonoBehaviour
             }
         }
 
-        if (loopCut && (Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
+        if (loopCut && 
+            ((Mathf.Abs(_lastCutPos - cutPos) > 1e-10 
             || _lastCutHorizontally != cutHorizontally 
-            || newFaceIndex))
+            || newFaceIndex) || loopCutDemo == null) )
         {
 
             
@@ -116,6 +123,10 @@ public class Cube : MonoBehaviour
             _lastCutHorizontally = cutHorizontally;
             _lastCuttedFaceIndex = faceIndex;
             //faces[0].Split()
+        }
+        else if(!loopCut && loopCutDemo != null)
+        {
+            loopCutDemo = null;
         }
 
         if (extrude && faces.Count > faceIndex && faceIndex >= 0)
@@ -226,13 +237,36 @@ public class Cube : MonoBehaviour
 
         if (faces.Count == 0) return;
         if(faceIndex >= faces.Count) faceIndex = faces.Count - 1;
-        faceVertices = faces[faceIndex].GetLines(Direction.all);
-        Gizmos.color = Color.cyan;
-        for (int l = 0; l < faceVertices.Length; l++)
-        {
 
-            Gizmos.DrawLine(vertices[faceVertices[l].x], vertices[faceVertices[l].y]);
+        // Draw the selected face neighbours
+        for (int i = 0; i < 4; i++)
+        {
+            Face neighbour = faces[faceIndex].GetNeighbourFace(faces[faceIndex], (Direction)i);
+            faceVertices = neighbour.GetLines(Direction.all);
+            Gizmos.color = colors[i];
+            for (int l = 0; l < faceVertices.Length; l++)
+            {
+
+                Gizmos.DrawLine(vertices[faceVertices[l].x], vertices[faceVertices[l].y]);
+            }
         }
+
+        // Draw the selected face
+        faceVertices = faces[faceIndex].GetLines(Direction.horizontal);
+        Gizmos.color = Color.cyan;
+
+        Vector3 vertix1 = Vector3.Lerp(vertices[faceVertices[0].x], vertices[faceVertices[1].x], 0.5f);
+        Vector3 vertix2 = Vector3.Lerp(vertices[faceVertices[0].y], vertices[faceVertices[1].y], 0.5f);
+        Gizmos.DrawLine(vertix1, vertix2);
+        //// Interpolate between the horizontal lines
+        //for (int l = 0; l < faceVertices.Length; l++)
+        //{
+
+        //    Gizmos.DrawLine(vertices[faceVertices[l].x], vertices[faceVertices[l].y]);
+        //}
+
+        
+        
 
         if (newFaces.Count > faceToFillIndex)
         {
@@ -397,7 +431,7 @@ public class Cube : MonoBehaviour
     #region Initialize
     private void _Initialize()
     {
-        vertices = new List<Vector3>(8);
+        vertices = new List<Vector3>();
         faces = new List<Face>();
 
         for(int i = 0; i < 8; i++)
@@ -422,7 +456,7 @@ public class Cube : MonoBehaviour
         // Create front face
         Face frontFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         int faceNr = 0;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topLeft] = new Vector3(-0.5f, 0.5f, -0.5f);
@@ -444,7 +478,7 @@ public class Cube : MonoBehaviour
         // Create right face
         Face rightFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         faceNr = 1;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(0.5f, 0.5f, -0.5f);
@@ -483,7 +517,7 @@ public class Cube : MonoBehaviour
         // Create back face
         Face backFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         faceNr = 2;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);
@@ -514,7 +548,7 @@ public class Cube : MonoBehaviour
         // Create left face
         Face leftFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         faceNr = 3;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topRight + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, -0.5f);
@@ -545,7 +579,7 @@ public class Cube : MonoBehaviour
         // Create bottom face
         Face bottomFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         faceNr = 4;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, -0.5f, 0.5f);
@@ -574,7 +608,7 @@ public class Cube : MonoBehaviour
         // Create top face
         Face topFace = new Face();
         // Create four new vertices
-        _CreateEmptyFaceVertices();
+        //_CreateEmptyFaceVertices();
         faceNr = 5;
         // Initalize the new vertices
         //vertices[(int)Face.VerticesPos.topLeft + (4 * faceNr)] = new Vector3(-0.5f, 0.5f, 0.5f);

@@ -205,13 +205,14 @@ public class Face
     {
         VerticesPos[] verticesPosition = new VerticesPos[2];
         // Check the vertix of the first and second points
-        for(int i = 0; i < 2; i++)
+        for(int i = 0; i < 2; i++) // 2 Represents the edge vertices
         {
             for(int vI = 0; vI < _verticesIndex.Length; vI++)
             {
                 if (edge[i] == _verticesIndex[vI])
                 { // The vertix has been found
                     verticesPosition[i] = (VerticesPos)vI; // Store the position of the vertix and not the index
+                    break;
                 }
             }
         }
@@ -380,7 +381,12 @@ public class Face
             // top, right, bottom, left has the numerical values 0, 1, 2, 3 respectively. 
         if((int)dir < _facesCount)
         {
-            face = _faces[(int)dir];
+            // Get the line at the specified direction
+            Vector2Int edge = GetLine(dir);
+
+            face = GetConnectedFace(edge);
+
+            //face = _faces[(int)dir];
         }
         else
         {
@@ -389,6 +395,88 @@ public class Face
         }
 
         return face;
+    }
+
+    public ConnectedFaceInfo GetConnectedFaceInfo(Face caller, Direction dir)
+    {
+        ConnectedFaceInfo info = new ConnectedFaceInfo();
+
+        
+
+        // Convert the wanted face to the face relative to the caller
+        dir = _GetCallerFaceOppositeDirection(caller, dir);
+
+        // The reason this if statement works is, the face that the expected directions
+        // top, right, bottom, left has the numerical values 0, 1, 2, 3 respectively. 
+        if ((int)dir < _facesCount)
+        {
+            // Get the line at the specified direction
+            Vector2Int edge = GetLine(dir);
+
+            // Assign the information to the connected face info
+            info.face = this;
+            info.neighbourFace = GetConnectedFace(edge);
+            info.connectingEdge = edge;
+
+            //face = _faces[(int)dir];
+        }
+        else
+        {
+            throw new Exception($"Expected top, right, bottom, left directions, " +
+                                $"but got {dir}");
+        }
+
+
+        return info;
+    }
+
+    public Face GetConnectedFace(Vector2Int edge)
+    {
+        Vector2Int[] lines;
+        for(int fI = 0; fI < _faces.Length; fI++)
+        {
+            lines = _faces[fI].GetLines(Direction.all);
+            for(int i = 0; i < lines.Length; i++)
+            {
+                if (
+                    lines[i].x == edge.x && lines[i].y == edge.y
+                    || lines[i].y == edge.x && lines[i].x == edge.y
+                    )
+                { // The face connected to that direction has been found
+                    return _faces[fI];
+                }
+            }
+        }
+        return null;
+    }
+
+    public bool IsConnected(Face face)
+    {
+        bool connected = false;
+        int connectedVertices = 0;
+
+        for(int o = 0; o < face._verticesIndex.Length; o++)
+        {
+            for(int i = 0; i < _verticesIndex.Length; i++)
+            {
+                if (face._verticesIndex[o] == _verticesIndex[i])
+                { // Found a common vertix
+                    connectedVertices++;
+
+                    if(connectedVertices > 1)
+                    { // It is confirmed that those faces are connected by an edge
+                        connected = true;
+                        break;
+                    }
+                }
+            }
+            if (connectedVertices > 1)
+            { // The face is confirmed as connected
+                break;
+            }
+        }
+
+        return connected;
     }
 
     public Direction GetNeighbourDirection(Face neighbourFace)
@@ -417,15 +505,23 @@ public class Face
 
         if(face != this)
         { // The top direction shall be relative to the caller face
+
+            // Get connecting line
+            Vector2Int connectingLine = GetConnectingEdge(face);
+            // Get connectingLine Direction
+            dir = GetEdgeDirection(connectingLine);
+
+            dir = _GetTheOppositeDirection(dir);
+
             // Get the placement of the face inside the faces array
-            for (int i = 0; i < _faces.Length; i++)
-            {
-                if (_faces[i] == face)
-                {
-                    dir = _GetTheOppositeDirection((Direction)i);
-                    break;
-                }
-            }
+            //for (int i = 0; i < _faces.Length; i++)
+            //{
+            //    if (_faces[i] == face)
+            //    {
+            //        dir = _GetTheOppositeDirection((Direction)i);
+            //        break;
+            //    }
+            //}
         }
 
         return dir;
@@ -620,13 +716,13 @@ public class Face
         //-------------------------------------------
         // Create the right face
         faces[(int)Direction.left < (int)Direction.right ? 1 : 0] = new Face(); // TODO: I have switched position between this face and the other one. This is supposed to be right face, but it is the left face....
-        int[] rightFaceVerticesIndex = new int[]
-        {
-            _verticesIndex[(int)VerticesPos.topLeft], // TopLeft
-            verticesIndex.x, // TopRight
-            verticesIndex.y, // BottomRight
-            _verticesIndex[(int)VerticesPos.bottomLeft] // BottomLeft
-        };
+        int[] rightFaceVerticesIndex = new int[4];
+        //{
+        //    _verticesIndex[(int)VerticesPos.topLeft], // TopLeft
+        //    verticesIndex.x, // TopRight
+        //    verticesIndex.y, // BottomRight
+        //    _verticesIndex[(int)VerticesPos.bottomLeft] // BottomLeft
+        //};
 
         rightFaceVerticesIndex[(int)VerticesPos.topLeft] = verticesIndex.x;
         rightFaceVerticesIndex[(int)VerticesPos.topRight] = _verticesIndex[(int)VerticesPos.topRight];

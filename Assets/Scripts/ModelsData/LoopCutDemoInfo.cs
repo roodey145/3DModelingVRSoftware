@@ -31,6 +31,21 @@ public class LoopCutDemoInfo
         public Face[] subFaces;
     }
 
+    public class CutsInfo
+    {
+        public int cutIndex;
+        public Vector2Int cutConnectingEdge;
+        public Face cutFace;
+        public Face neighbourFace;
+
+        public bool IsCuttedEdge(Vector2Int edge)
+        {
+            return 
+                (cutConnectingEdge.x == edge.x && cutConnectingEdge.y == edge.y)
+                || (cutConnectingEdge.y == edge.x && cutConnectingEdge.x == edge.y);
+        }
+    }
+
     private Face _originalFace;
     private float _originalCutPosition;
     private Direction _originalDirection;
@@ -42,6 +57,9 @@ public class LoopCutDemoInfo
     public List<Vector3> originalVertices = new List<Vector3>(); // Object vertices
     public List<CutInfo> faces = new List<CutInfo>();
     public List<Direction> direction = new List<Direction>();
+
+    private List<CutsInfo> _cutsInfo = new List<CutsInfo>();
+
 
     public LoopCutDemoInfo(Face originalFace, float cutPosition, Direction cutDirection, List<Vector3> vertices)
     {
@@ -211,10 +229,25 @@ public class LoopCutDemoInfo
         // Draw the demo
         Gizmos.color = color;
 
-        // Connect the vertices
-        for(int i = 0; i < _vertices.Count/2; i++)
+
+
+        for(int i = 0; i < faces.Count; i++)
         {
-            Gizmos.DrawLine(_vertices[(i * 2)], _vertices[(i * 2) + 1]);
+            
+        }
+
+        // Connect the vertices
+        for(int i = 0; i < _vertices.Count; i++)
+        {
+            if(i == _vertices.Count - 1)
+            {
+                Gizmos.DrawLine(_vertices[i], _vertices[0]);
+            }
+            else
+            {
+                Gizmos.DrawLine(_vertices[i], _vertices[i + 1]);
+            }
+            
 
         }
     }
@@ -243,10 +276,10 @@ public class LoopCutDemoInfo
 
         Face[] neighbours = new Face[4];
 
-        for (int i = 0; i < _vertices.Count / 2; i++)
+        for (int i = 0; i < _vertices.Count; i++)
         {
-            originalVertices.Add(_vertices[(i * 2)]);
-            originalVertices.Add(_vertices[(i * 2) + 1]);
+            originalVertices.Add(_vertices[i]);
+            //originalVertices.Add(_vertices[i + 1]);
 
             // Get the index of the next face
             nextFaceIndex = i == faces.Count - 1 ? 0 : i + 1;
@@ -290,20 +323,48 @@ public class LoopCutDemoInfo
                     , Direction.left);
 
                 // Assign the subfaces of the next face at their respective directions - 3 faces assigned
-                faces[i].subFaces[leftFaceIndex].SetFace(
-                    faces[nextFaceIndex].subFaces[leftFaceIndex],
-                    nextFaceDirection);
-                faces[i].subFaces[rightFaceIndex].SetFace(
-                    faces[nextFaceIndex].subFaces[rightFaceIndex],
-                    nextFaceDirection);
+
+                if (faces[i].subFaces[leftFaceIndex].IsConnected(faces[nextFaceIndex].subFaces[leftFaceIndex]))
+                { // The left face is connected with the left subface of the next face 
+                    faces[i].subFaces[leftFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[leftFaceIndex],
+                        nextFaceDirection);
+                    faces[i].subFaces[rightFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[rightFaceIndex],
+                        nextFaceDirection);
+                }
+                else
+                { // The left face is connected with right subface of the next face!
+                    faces[i].subFaces[leftFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[rightFaceIndex],
+                        nextFaceDirection);
+                    faces[i].subFaces[rightFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[leftFaceIndex],
+                        nextFaceDirection);
+                }
+
+
 
                 // Assign the subfaces of the previous face at their respective directions - 4 faces assigned
-                faces[i].subFaces[leftFaceIndex].SetFace(
-                    faces[previousFaceIndex].subFaces[leftFaceIndex],
-                    previousFaceDirection);
-                faces[i].subFaces[rightFaceIndex].SetFace(
-                    faces[previousFaceIndex].subFaces[rightFaceIndex],
-                    previousFaceDirection);
+                if (faces[i].subFaces[leftFaceIndex].IsConnected(faces[previousFaceIndex].subFaces[leftFaceIndex]))
+                { // The left face is connected with the left subface of the previous face 
+                    faces[i].subFaces[leftFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[leftFaceIndex],
+                        previousFaceDirection);
+                    faces[i].subFaces[rightFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[rightFaceIndex],
+                        previousFaceDirection);
+                }
+                else
+                { // The left face is connected with the right subface of the previous face! 
+                    faces[i].subFaces[leftFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[rightFaceIndex],
+                        previousFaceDirection);
+                    faces[i].subFaces[rightFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[leftFaceIndex],
+                        previousFaceDirection);
+                }
+                
 
             }
             else if (direction[i] == Direction.horizontal)
@@ -332,21 +393,50 @@ public class LoopCutDemoInfo
                     faces[i].subFaces[topFaceIndex]
                     , Direction.top);
 
+
+
+
                 // Assign the subfaces of the next face at their respective directions - 3 faces assigned
-                faces[i].subFaces[topFaceIndex].SetFace(
-                    faces[nextFaceIndex].subFaces[topFaceIndex],
-                    nextFaceDirection);
-                faces[i].subFaces[bottomFaceIndex].SetFace(
-                    faces[nextFaceIndex].subFaces[bottomFaceIndex],
-                    nextFaceDirection);
+                if (faces[i].subFaces[topFaceIndex].IsConnected(faces[nextFaceIndex].subFaces[topFaceIndex]))
+                {
+                    faces[i].subFaces[topFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[topFaceIndex],
+                        nextFaceDirection);
+                    faces[i].subFaces[bottomFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[bottomFaceIndex],
+                        nextFaceDirection);
+                }
+                else
+                {
+                    faces[i].subFaces[topFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[bottomFaceIndex],
+                        nextFaceDirection);
+                    faces[i].subFaces[bottomFaceIndex].SetFace(
+                        faces[nextFaceIndex].subFaces[topFaceIndex],
+                        nextFaceDirection);
+                }
+
 
                 // Assign the subfaces of the previous face at their respective directions - 4 faces assigned
-                faces[i].subFaces[topFaceIndex].SetFace(
-                    faces[previousFaceIndex].subFaces[topFaceIndex],
-                    previousFaceDirection);
-                faces[i].subFaces[bottomFaceIndex].SetFace(
-                    faces[previousFaceIndex].subFaces[bottomFaceIndex],
-                    previousFaceDirection);
+                if (faces[i].subFaces[topFaceIndex].IsConnected(faces[previousFaceIndex].subFaces[topFaceIndex]))
+                {
+                    faces[i].subFaces[topFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[topFaceIndex],
+                        previousFaceDirection);
+                    faces[i].subFaces[bottomFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[bottomFaceIndex],
+                        previousFaceDirection);
+                }
+                else
+                {
+                    faces[i].subFaces[topFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[bottomFaceIndex],
+                        previousFaceDirection);
+                    faces[i].subFaces[bottomFaceIndex].SetFace(
+                        faces[previousFaceIndex].subFaces[topFaceIndex],
+                        previousFaceDirection);
+                }
+                
             }
             else
             {
@@ -357,9 +447,9 @@ public class LoopCutDemoInfo
             for (int subFace = 0; subFace < faces[i].subFaces.Length; subFace++)
             {
                 // To understand why the originalVertices.Count is added, read the summery
-                faces[i].subFaces[subFace].UpdateVerticesIndex(
-                new Vector2Int((i * 2) + originalVertices.Count, (i * 2) + 1 + originalVertices.Count),
-                new Vector2Int(originalVertices.Count - 2, originalVertices.Count - 1));
+                //faces[i].subFaces[subFace].UpdateVerticesIndex(
+                //new Vector2Int((i * 2) + originalVertices.Count, (i * 2) + 1 + originalVertices.Count),
+                //new Vector2Int(originalVertices.Count - 2, originalVertices.Count - 1));
 
                 // Add the subfaces to the list
                 originalFaces.Add(faces[i].subFaces[subFace]);
@@ -370,20 +460,24 @@ public class LoopCutDemoInfo
     }
 
 
-
+    private ConnectedFaceInfo _connectedFaceInfo;
     private void _LoopCut(Face firstCaller, Face caller, Face face, float cutPositionInPercent, Direction cutDirection)
     {
         Face newFace;
         Face[] newFaces;
         if (cutDirection == Direction.verctial)
         {
-            newFaces = _CutVertically(face, cutPositionInPercent);
-            newFace = face.GetNeighbourFace(caller, Direction.top);
+            _connectedFaceInfo = face.GetConnectedFaceInfo(caller, Direction.top);
+            newFace = _connectedFaceInfo.neighbourFace;
+            newFaces = _CutVertically(face, cutPositionInPercent, newFace);
+            //newFace = face.GetNeighbourFace(caller, Direction.top);
         }
         else
         {
-            newFaces = _CutHorizontally(face, cutPositionInPercent);
-            newFace = face.GetNeighbourFace(caller, Direction.right);
+            _connectedFaceInfo = face.GetConnectedFaceInfo(caller, Direction.right);
+            newFace = _connectedFaceInfo.neighbourFace;
+            newFaces = _CutHorizontally(face, cutPositionInPercent, newFace);
+            //newFace = face.GetNeighbourFace(caller, Direction.right);
         }
 
         //faces.Add(newFaces[0]);
@@ -391,11 +485,11 @@ public class LoopCutDemoInfo
 
         SetNewFace(face, newFaces, cutDirection);
 
-        //if (faces.Count > 100)
-        //{
-        //    MonoBehaviour.print("Reached Faces Limit");
-        //    return;
-        //}
+        if (faces.Count > 100)
+        {
+            MonoBehaviour.print("Reached Faces Limit");
+            return;
+        }
 
 
         MonoBehaviour.print($"Move from {face.name} face to {newFace.name} face");
@@ -418,35 +512,141 @@ public class LoopCutDemoInfo
 
     }
 
-
-    private Face[] _CutHorizontally(Face face, float cutPositionInPercent)
+    
+    private Face[] _CutHorizontally(Face face, float cutPositionInPercent, Face newFace)
     {
         // Cut verticlly
-        Vector2Int[] horizontalLines = face.GetLines(Direction.verctial);
+        Vector2Int[] verticalLines = face.GetLines(Direction.verctial);
+
 
         // Calculate the position of the new vertices
         int leftLineIndex = (int)Direction.left < (int)Direction.right ? 0 : 1;
         int rightLineIndex = (int)Direction.left < (int)Direction.right ? 1 : 0;
-        Vector3 leftCut =
+
+
+        Vector3 leftCut;
+        Vector3 rightCut;
+
+        int leftVertixIndex = -1;
+        int rightVertixIndex = -1;
+
+        if (_connectedFaceInfo != null && _connectedFaceInfo.face != _originalFace
+            && newFace != _originalFace)
+        { // This face has a common edge which has already been cutted
+            // Get the last cutted face and its info
+            //CutInfo lastFace = faces[faces.Count - 1];
+            for (int i = _cutsInfo.Count - 1; i >= 0; i--)
+            {
+                if (_cutsInfo[i].IsCuttedEdge(verticalLines[leftLineIndex]))
+                {
+                    leftVertixIndex = _cutsInfo[i].cutIndex;
+                    break;
+                }
+                else if (_cutsInfo[i].IsCuttedEdge(verticalLines[rightLineIndex]))
+                {
+                    rightVertixIndex = _cutsInfo[i].cutIndex;
+                    break;
+                }
+            }
+        }
+
+        // Check if this is the last face to be cutted
+        if (newFace == _originalFace)
+        { // This is the last face to be cutted
+
+            /* The last face has a common face with the first cutted face as well
+             * as the previousely cutted face, thus, it does not need to be cutted */
+
+
+            for (int i = _cutsInfo.Count - 1; i >= 0; i--)
+            {
+                if (_cutsInfo[i].IsCuttedEdge(verticalLines[leftLineIndex]))
+                {
+                    leftVertixIndex = _cutsInfo[i].cutIndex;
+                    //break;
+                    if (rightVertixIndex != -1)
+                        break;
+                }
+                else if (_cutsInfo[i].IsCuttedEdge(verticalLines[rightLineIndex]))
+                {
+                    rightVertixIndex = _cutsInfo[i].cutIndex;
+                    //break;
+                    if (leftVertixIndex != -1)
+                        break;
+                }
+            }
+
+        }
+
+        //leftCut =
+        //    Vector3.Lerp(
+        //        originalVertices[verticalLines[leftLineIndex].x],
+        //        originalVertices[verticalLines[leftLineIndex].y],
+        //        cutPositionInPercent);
+
+        //rightCut =
+        //    Vector3.Lerp(
+        //        originalVertices[verticalLines[rightLineIndex].x],
+        //        originalVertices[verticalLines[rightLineIndex].y],
+        //        cutPositionInPercent);
+
+        //// To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
+        //// Add the points to the vertices
+        //_vertices.Add(leftCut);
+        //leftVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+        //_vertices.Add(rightCut);
+        //rightVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+
+
+        if (rightVertixIndex == -1)
+        { // The bottom edge of this face has not been cutted yet
+
+            rightCut =
             Vector3.Lerp(
-                originalVertices[horizontalLines[leftLineIndex].x],
-                originalVertices[horizontalLines[leftLineIndex].y],
+                originalVertices[verticalLines[rightLineIndex].x],
+                originalVertices[verticalLines[rightLineIndex].y],
                 cutPositionInPercent);
 
-        Vector3 rightCut =
-            Vector3.Lerp(
-                originalVertices[horizontalLines[rightLineIndex].x],
-                originalVertices[horizontalLines[rightLineIndex].y],
-                cutPositionInPercent);
+            _vertices.Add(rightCut);
+            rightVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+
+
+            CutsInfo newCut = new();
+
+            /* Those information will be used to find out which vertic index
+             * the next face shall be connected to */
+            newCut.cutFace = face;
+            newCut.cutIndex = rightVertixIndex;
+            newCut.cutConnectingEdge = verticalLines[rightLineIndex];
+
+            _cutsInfo.Add(newCut);
+
+        }
 
         // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
         // Add the points to the vertices
-        _vertices.Add(leftCut);
-        int leftVertixIndex = _vertices.Count - 1 + originalVertices.Count;
-        _vertices.Add(rightCut);
-        int rightVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+        if (leftVertixIndex == -1)
+        { // The top edge of this face has not been cutted yet
 
+            leftCut =
+            Vector3.Lerp(
+                originalVertices[verticalLines[leftLineIndex].x],
+                originalVertices[verticalLines[leftLineIndex].y],
+                cutPositionInPercent);
 
+            _vertices.Add(leftCut);
+            leftVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+
+            CutsInfo newCut = new();
+
+            /* Those information will be used to find out which vertic index
+             * the next face shall be connected to */
+            newCut.cutFace = face;
+            newCut.cutIndex = leftVertixIndex;
+            newCut.cutConnectingEdge = verticalLines[leftLineIndex];
+
+            _cutsInfo.Add(newCut);
+        }
 
 
         Vector2Int cutThrough = new Vector2Int();
@@ -462,35 +662,116 @@ public class LoopCutDemoInfo
     }
 
 
-    private Face[] _CutVertically(Face face, float cutPositionInPercent)
+    private Face[] _CutVertically(Face face, float cutPositionInPercent, Face newFace)
     {
         // Cut verticlly
-        Vector2Int[] verticalLines = face.GetLines(Direction.horizontal);
+        Vector2Int[] horizontalLines = face.GetLines(Direction.horizontal);
 
         // Calculate the position of the new vertices
         int topLineIndex = (int)Direction.top < (int)Direction.bottom ? 0 : 1;
         int bottomLineIndex = (int)Direction.top < (int)Direction.bottom ? 1 : 0;
+
+        int topVertixIndex = -1;
+        int bottomVertixIndex = -1;
+
+        Vector3 topCut;
+        Vector3 bottomCut;
+        if (_connectedFaceInfo != null && _connectedFaceInfo.face != _originalFace 
+            && newFace != _originalFace)
+        { // This face has a common edge which has already been cutted
+            // Get the last cutted face and its info
+            //CutInfo lastFace = faces[faces.Count - 1];
+            for(int i = _cutsInfo.Count - 1; i >= 0; i--)
+            {
+                if (_cutsInfo[i].IsCuttedEdge(horizontalLines[topLineIndex]))
+                {
+                    topVertixIndex = _cutsInfo[i].cutIndex;
+                    break;
+                }
+                else if(_cutsInfo[i].IsCuttedEdge(horizontalLines[bottomLineIndex]))
+                {
+                    bottomVertixIndex = _cutsInfo[i].cutIndex;
+                    break;
+                }
+            }
+        }
         
+        // Check if this is the last face to be cutted
+        if(newFace == _originalFace)
+        { // This is the last face to be cutted
+
+            /* The last face has a common face with the first cutted face as well
+             * as the previousely cutted face, thus, it does not need to be cutted */
 
 
-        Vector3 topCut =
+            for (int i = _cutsInfo.Count - 1; i >= 0; i--)
+            {
+                if (_cutsInfo[i].IsCuttedEdge(horizontalLines[topLineIndex]))
+                {
+                    topVertixIndex = _cutsInfo[i].cutIndex;
+                    //break;
+                    if (bottomVertixIndex != -1)
+                        break;
+                }
+                else if (_cutsInfo[i].IsCuttedEdge(horizontalLines[bottomLineIndex]))
+                {
+                    bottomVertixIndex = _cutsInfo[i].cutIndex;
+                    //break;
+                    if (topVertixIndex != -1)
+                        break;
+                }
+            }
+
+        }
+
+
+        if(bottomVertixIndex == -1)
+        { // The bottom edge of this face has not been cutted yet
+
+            bottomCut =
             Vector3.Lerp(
-                originalVertices[verticalLines[topLineIndex].x],
-                originalVertices[verticalLines[topLineIndex].y],
+                originalVertices[horizontalLines[bottomLineIndex].x],
+                originalVertices[horizontalLines[bottomLineIndex].y],
                 cutPositionInPercent);
 
-        Vector3 bottomCut =
-            Vector3.Lerp(
-                originalVertices[verticalLines[bottomLineIndex].x],
-                originalVertices[verticalLines[bottomLineIndex].y],
-                cutPositionInPercent);
+            _vertices.Add(bottomCut);
+            bottomVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+
+
+            CutsInfo newCut = new();
+
+            /* Those information will be used to find out which vertic index
+             * the next face shall be connected to */
+            newCut.cutFace = face;
+            newCut.cutIndex = bottomVertixIndex;
+            newCut.cutConnectingEdge = horizontalLines[bottomLineIndex];
+            _cutsInfo.Add(newCut);
+        }
 
         // To understand the reason for adding the vertices.Count to the index, read the summery of the LoopCutDemoInfo class
         // Add the points to the vertices
-        _vertices.Add(topCut);
-        int topVertixIndex = _vertices.Count - 1 + originalVertices.Count;
-        _vertices.Add(bottomCut);
-        int bottomVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+        if (topVertixIndex == -1)
+        { // The top edge of this face has not been cutted yet
+
+            topCut =
+            Vector3.Lerp(
+                originalVertices[horizontalLines[topLineIndex].x],
+                originalVertices[horizontalLines[topLineIndex].y],
+                cutPositionInPercent);
+
+            _vertices.Add(topCut);
+            topVertixIndex = _vertices.Count - 1 + originalVertices.Count;
+
+            CutsInfo newCut = new();
+
+            /* Those information will be used to find out which vertic index
+             * the next face shall be connected to */
+            newCut.cutFace = face;
+            newCut.cutIndex = topVertixIndex;
+            newCut.cutConnectingEdge = horizontalLines[topLineIndex];
+
+            _cutsInfo.Add(newCut);
+        }
 
         Vector2Int cutThrough = new Vector2Int();
         cutThrough.x = (int)Direction.top < (int)Direction.bottom ? topVertixIndex : bottomVertixIndex;
