@@ -10,6 +10,9 @@ public class SoundUIController : MonoBehaviour
     private Slider backgroundSoundSlider;
     public TextMeshProUGUI interactionVolumeProcent;
     public TextMeshProUGUI backgroundVolumeProcent;
+    public TextMeshProUGUI interactionButtonText;
+    public TextMeshProUGUI backgroundButtonText;
+
     public Image interactionImg;
     public Image backgroundImg;
     public Image[] muteUnmute;
@@ -24,6 +27,7 @@ public class SoundUIController : MonoBehaviour
         backgroundSoundSlider.onValueChanged.AddListener(ChangeBackgroundSoundVolume);
         interactionVolumeProcent.text = "Tool volume: " + interactionSoundSlider.value + "%";
         backgroundVolumeProcent.text = "Envirement volume: " + backgroundSoundSlider.value + "%";
+        
     }
 
     private void ChangeInteractionSoundVolume(float value)
@@ -37,11 +41,14 @@ public class SoundUIController : MonoBehaviour
         {
             SoundManager.InteractionSoundPlaying = true;
             interactionImg = muteUnmute[1];
+            interactionButtonText.text = "ON";
+
         }
         else
         {
             SoundManager.InteractionSoundPlaying = !SoundManager.InteractionSoundPlaying;
             interactionImg = muteUnmute[0];
+            interactionButtonText.text = "OFF";
         }
     }
 
@@ -55,11 +62,13 @@ public class SoundUIController : MonoBehaviour
         {
             SoundManager.BackgroundSoundPlaying = true;
             backgroundImg = muteUnmute[1];
+            backgroundButtonText.text = "ON";
         }
         else
         {
             SoundManager.BackgroundSoundPlaying = !SoundManager.BackgroundSoundPlaying;
             backgroundImg = muteUnmute[0];
+            backgroundButtonText.text = "OFF";
         }
     }
 
@@ -68,11 +77,13 @@ public class SoundUIController : MonoBehaviour
     {
         SoundManager.InteractionSoundPlaying = !SoundManager.InteractionSoundPlaying;
         interactionImg = muteUnmute[0];
+        interactionButtonText.text = "OFF";
     }
 
     public void ToggleBackgroundSound()
     {
         SoundManager.BackgroundSoundPlaying = !SoundManager.BackgroundSoundPlaying;
         backgroundImg = muteUnmute[0];
+        backgroundButtonText.text = "OFF";
     }
 }
